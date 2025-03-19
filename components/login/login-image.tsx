@@ -27,7 +27,7 @@ export function LoginImage({
       {/* Overlay content */}
       <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-end p-8">
         <div className="max-w-md text-center text-white mb-8">
-          <h2 className="text-2xl font-bold mb-4">{title}</h2>
+          {/* <h2 className="text-2xl font-bold mb-4">{title}</h2> */}
           <p>{description}</p>
         </div>
       </div>
