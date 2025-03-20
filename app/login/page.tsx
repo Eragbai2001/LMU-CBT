@@ -1,5 +1,5 @@
-import { LoginForm } from "@/components/login/login-form"
-import { LoginImage } from "@/components/login/login-image"
+import { LoginForm } from "@/components/login/login-form";
+import { LoginImage } from "@/components/login/login-image";
 
 export default function LoginPage() {
   return (
@@ -15,6 +15,5 @@ export default function LoginPage() {
         description="Our platform provides a secure, reliable environment for academic assessments, helping universities maintain integrity while delivering a seamless testing experience."
       />
     </div>
-  )
+  );
 }
-
