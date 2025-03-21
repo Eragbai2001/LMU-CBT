@@ -7,7 +7,8 @@ import { toast } from "react-hot-toast";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { GraduationCap, Github } from "lucide-react";
+import { GraduationCap } from "lucide-react";
+import Oauth from "@/components/login/oauth";
 
 // Zod Schema for validation
 const signupSchema = z.object({
@@ -78,15 +79,7 @@ export function RegisterForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Button
-          variant="outline"
-          className="w-full flex items-center justify-center"
-          type="button"
-        >
-          <Github className="mr-2 h-4 w-4" />
-          Continue with GitHub
-        </Button>
-
+        <Oauth />
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-gray-200" />
