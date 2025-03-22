@@ -1,18 +1,45 @@
-import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { GraduationCap, ArrowRight } from "lucide-react"
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { GraduationCap, ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
-      <header className="container mx-auto py-6 flex justify-between items-center">
+      <header className="container mx-auto py-7 flex justify-between items-center  border-b-3 border-solid border-gray-400">
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 p-2 rounded-full">
             <GraduationCap className="h-6 w-6 text-primary" />
           </div>
           <h1 className="text-xl font-bold">UniTest CBT</h1>
         </div>
+        <div>
+          <Link href="/">
+            <button className="inline-flex relative items-center font-medium text-gray-900 hover:text-gray-700 overflow-hidden transition-all duration-300 group mr-5">
+              <span className="relative">
+                Home
+                <span className="absolute left-0 bottom-0 h-px w-full bg-current transform transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
+              </span>
+            </button>
+          </Link>
+          <Link href="/Otherpages/about/">
+            <button className="inline-flex relative items-center font-medium text-gray-900 hover:text-gray-700 overflow-hidden transition-all duration-300 group mr-5">
+              <span className="relative">
+                About
+                <span className="absolute left-0 bottom-0 h-px w-full bg-current transform transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
+              </span>
+            </button>
+          </Link>
+          <Link href="/Otherpages/contact/">
+            <button className="inline-flex relative items-center font-medium text-gray-900 hover:text-gray-700 overflow-hidden transition-all duration-300 group mr-5">
+              <span className="relative">
+                Contact
+                <span className="absolute left-0 bottom-0 h-px w-full bg-current transform transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
+              </span>
+            </button>
+          </Link>
+        </div>
+
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-sm font-medium hover:underline">
             Sign In
@@ -31,8 +58,9 @@ export default function Home() {
               Elevate Your Academic Assessment Experience
             </h2>
             <p className="text-lg text-muted-foreground">
-              Our comprehensive computer-based testing platform provides secure, reliable, and efficient assessments for
-              university courses, exams, and certifications.
+              Our comprehensive computer-based testing platform provides secure,
+              reliable, and efficient assessments for university courses, exams,
+              and certifications.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="gap-2">
@@ -45,10 +73,10 @@ export default function Home() {
           </div>
           <div className="relative h-[400px] w-full">
             <Image
-              src="/placeholder.svg?height=400&width=500"
+              src="/authimg/niclas-illg-kxubeW6oyE8-unsplash.jpg"
               alt="Students taking online exams"
               fill
-              className="object-contain"
+              className="object-contain rounded-lg mt-4"
               priority
             />
           </div>
@@ -57,7 +85,12 @@ export default function Home() {
         <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-slate-50 p-6 rounded-lg">
             <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-              <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="h-6 w-6 text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -68,23 +101,40 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-bold mb-2">Secure Testing</h3>
             <p className="text-muted-foreground">
-              Advanced proctoring and authentication features ensure academic integrity.
+              Advanced proctoring and authentication features ensure academic
+              integrity.
             </p>
           </div>
           <div className="bg-slate-50 p-6 rounded-lg">
             <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-              <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <svg
+                className="h-6 w-6 text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
             </div>
             <h3 className="text-xl font-bold mb-2">Instant Results</h3>
             <p className="text-muted-foreground">
-              Automated grading provides immediate feedback and performance analytics.
+              Automated grading provides immediate feedback and performance
+              analytics.
             </p>
           </div>
           <div className="bg-slate-50 p-6 rounded-lg">
             <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-              <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="h-6 w-6 text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -95,12 +145,12 @@ export default function Home() {
             </div>
             <h3 className="text-xl font-bold mb-2">Detailed Analytics</h3>
             <p className="text-muted-foreground">
-              Comprehensive insights into student performance and learning outcomes.
+              Comprehensive insights into student performance and learning
+              outcomes.
             </p>
           </div>
         </div>
       </main>
     </div>
-  )
+  );
 }
-
