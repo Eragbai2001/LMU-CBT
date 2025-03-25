@@ -12,7 +12,7 @@ export default function LoginPage() {
       {/* Right side - Image */}
       <LoginImage
         title="Secure Computer-Based Testing"
-        description="Our platform provides a secure, reliable environment for academic assessments, helping universities maintain integrity while delivering a seamless testing experience."
+       
       />
     </div>
   );

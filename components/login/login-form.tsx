@@ -83,7 +83,7 @@ export function LoginForm() {
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <div className="text-right">
-            <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+            <Link href="/forgot-password" className="text-sm text-blue-500 hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -95,7 +95,7 @@ export function LoginForm() {
       <CardFooter className="flex flex-col">
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-primary hover:underline">
+          <Link href="/register" className="text-blue-500 hover:underline">
             Register here
           </Link>
         </p>

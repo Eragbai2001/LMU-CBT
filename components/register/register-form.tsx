@@ -4,23 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
-import { z } from "zod";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GraduationCap } from "lucide-react";
 import Oauth from "@/components/login/oauth";
-
-// Zod Schema for validation
-const signupSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters long"),
-  email: z
-    .string()
-    .email("Invalid email format")
-    .refine((email) => email.endsWith("@lmu.edu.ng"), {
-      message: "Only @lmu.edu.ng emails are allowed",
-    }),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
-});
+import { signupSchema } from "@/lib/zod";
+import PasswordStrengthMeter from "../PasswordStrengthMeter";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -120,7 +110,7 @@ export function RegisterForm() {
           className="h-12 bg-gray-50"
           required
         />
-
+        {password && <PasswordStrengthMeter password={password} />}
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <Button
@@ -135,7 +125,7 @@ export function RegisterForm() {
           Already have an account?{" "}
           <Link
             href="/login"
-            className="text-primary font-medium hover:underline"
+            className="  font-medium hover:underline"
           >
             Sign in
           </Link>
