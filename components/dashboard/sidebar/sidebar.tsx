@@ -4,7 +4,7 @@ import { useState } from "react"
 import { BookOpen, X, Menu, Home, FileText, Award, BarChart2, Settings, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SidebarItem } from "./sidebar-item"
-import { UserProfile } from "./user-profile"
+import UserProfile from "./user-profile"
 
 interface SidebarProps {
   isSidebarOpen: boolean
@@ -125,11 +125,7 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarPr
         </nav>
 
         <UserProfile
-          isCollapsed={isSidebarOpen}
-          isHovered={isHovered}
-          isMobile={isMobile}
-          name="John Doe"
-          studentId="12345"
+         
         />
       </div>
     </>
