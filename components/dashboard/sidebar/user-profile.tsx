@@ -1,18 +1,19 @@
-import { auth } from "@/auth";
+"use client";
 
- // Importing auth to fetch session
+import { Session } from "next-auth";
 
-export default async function UserProfile() {
-  const session = await auth(); // Fetch authenticated user session
+interface UserProfileProps {
+  session: Session | null;
+}
 
+export default function UserProfile({ session }: UserProfileProps) {
   if (!session?.user) return null;
 
   return (
     <div className="flex items-center space-x-3">
       <div>
         <p className="font-semibold">{session.user.name}</p>
-        <p className="text-sm text-gray-500">{session.user.email}</p>{" "}
-        {/* Display user's email */}
+        <p className="text-sm text-gray-500">{session.user.email}</p>
       </div>
     </div>
   );

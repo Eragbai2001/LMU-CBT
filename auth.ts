@@ -95,7 +95,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session?.user) {
         session.user.id = token.sub!;
         session.user.email = token.email ?? ""; // ✅ FIXED: Ensure email is always a string
-        session.user.image = token.picture ?? null;
       }
       return session;
     },
