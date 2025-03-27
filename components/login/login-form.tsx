@@ -18,6 +18,7 @@ import { GraduationCap } from "lucide-react";
 import Oauth from "@/components/login/oauth";
 import { handleLogin } from "@/app/api/auth/login/LoginHandler";
 
+
 export function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState<string>("");
@@ -56,7 +57,10 @@ export function LoginForm() {
           <div className="bg-primary/10 p-2 rounded-full">
             <GraduationCap className="h-6 w-6 text-primary" />
           </div>
-          <span className="text-xl font-bold">UniTest CBT</span>
+          <div className="flex flex-1 flex-col">
+            <span className="font-bold text-lg">UniTest CBT</span>
+            {/* Rest of your sidebar content */}
+          </div>
         </div>
         <CardTitle className="text-2xl">Welcome back</CardTitle>
         <CardDescription>Sign in to your account to continue</CardDescription>
