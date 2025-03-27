@@ -5,9 +5,10 @@ import { useState, useEffect } from "react";
 
 interface LoginImageProps {
   title?: string;
+  description?: string;
 }
 
-export function LoginImage({ title }: LoginImageProps) {
+export function LoginImage({ title, description }: LoginImageProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const { images, quotes } = carouselData;
 
