@@ -14,16 +14,18 @@ export async function getUserFromDb(email: string) {
   export async function createUserInDb({
     email,
     name,
+    password = null, // Default to null for OAuth users
   }: {
     email: string;
     name: string;
+    password?: string | null;
   }) {
     try {
       return await db.user.create({
         data: {
           email,
           name,
-          password: null, // No need to cast explicitly
+          password, // This now allows both null and actual passwords
         },
       });
     } catch (error) {
@@ -31,4 +33,5 @@ export async function getUserFromDb(email: string) {
       return null;
     }
   }
+  
   

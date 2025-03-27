@@ -1,23 +1,43 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { BookOpen, X, Menu, Home, FileText, Award, BarChart2, Settings, User } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { SidebarItem } from "./sidebar-item"
-import { UserProfile } from "./user-profile"
+import { useState, useEffect } from "react";
+import { getSession } from "next-auth/react";
+import {
+  BookOpen,
+  X,
+  Menu,
+  Home,
+  FileText,
+  Award,
+  BarChart2,
+  Settings,
+  User,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { SidebarItem } from "./sidebar-item";
+import UserProfile from "./user-profile";
+import type { Session } from "next-auth";
 
 interface SidebarProps {
-  isSidebarOpen: boolean
-  setIsSidebarOpen: (open: boolean) => void
-  isMobile: boolean
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (open: boolean) => void;
+  isMobile: boolean;
 }
 
 export function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarProps) {
-  const [isHovered, setIsHovered] = useState(false)
+  const [isHovered, setIsHovered] = useState(false);
+  const [session, setSession] = useState<Session | null>(null); 
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
-  }
+  useEffect(() => {
+    const fetchUserSession = async () => {
+      const userSession = await getSession();
+      setSession(userSession);
+    };
+
+    fetchUserSession();
+  }, []);
+
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard", active: true },
@@ -27,7 +47,7 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarPr
     { icon: Award, label: "Achievements", href: "/dashboard/achievements" },
     { icon: User, label: "Profile", href: "/dashboard/profile" },
     { icon: Settings, label: "Settings", href: "/dashboard/settings" },
-  ]
+  ];
 
   return (
     <>
@@ -44,7 +64,7 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarPr
         <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsSidebarOpen(false)} />
       )}
 
-      {/* Aceternity-inspired Sidebar */}
+      {/* Sidebar */}
       <div
         className={cn(
           "h-full bg-white border-r shadow-sm transition-all duration-300 ease-in-out z-40",
@@ -53,9 +73,9 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarPr
               ? "fixed inset-y-0 left-0 w-64"
               : "fixed inset-y-0 -left-64 w-64"
             : isSidebarOpen
-              ? "w-64"
-              : "w-20",
-          "flex flex-col",
+            ? "w-64"
+            : "w-20",
+          "flex flex-col"
         )}
         onMouseEnter={() => !isMobile && setIsHovered(true)}
         onMouseLeave={() => !isMobile && setIsHovered(false)}
@@ -68,7 +88,7 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarPr
             <h1
               className={cn(
                 "text-lg font-bold transition-opacity duration-200 whitespace-nowrap",
-                !isSidebarOpen && !isHovered && !isMobile ? "opacity-0 w-0" : "opacity-100 w-auto",
+                !isSidebarOpen && !isHovered && !isMobile ? "opacity-0 w-0" : "opacity-100 w-auto"
               )}
             >
               UniTest CBT
@@ -124,15 +144,9 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarPr
           ))}
         </nav>
 
-        <UserProfile
-          isCollapsed={isSidebarOpen}
-          isHovered={isHovered}
-          isMobile={isMobile}
-          name="John Doe"
-          studentId="12345"
-        />
+        {/* Pass session data to UserProfile */}
+        <UserProfile session={session} />
       </div>
     </>
-  )
+  );
 }
-

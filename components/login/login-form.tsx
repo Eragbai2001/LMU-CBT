@@ -6,7 +6,14 @@ import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { GraduationCap } from "lucide-react";
 import Oauth from "@/components/login/oauth";
 import { handleLogin } from "@/app/api/auth/login/LoginHandler";
@@ -24,15 +31,19 @@ export function LoginForm() {
     setError(null);
 
     try {
-      await handleLogin(new FormData(e.currentTarget));
+      const res = await handleLogin(new FormData(e.currentTarget));
+
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
+
       toast.success("Login successful! Redirecting...");
       router.push("/dashboard");
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred. Please try again later.");
-      }
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred."
+      );
     } finally {
       setLoading(false);
     }
@@ -59,7 +70,9 @@ export function LoginForm() {
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+            <span className="bg-white px-2 text-muted-foreground">
+              Or continue with
+            </span>
           </div>
         </div>
         <form onSubmit={handleSubmit} className="space-y-2">
@@ -83,11 +96,18 @@ export function LoginForm() {
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <div className="text-right">
-            <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-blue-500 hover:underline"
+            >
               Forgot password?
             </Link>
           </div>
-          <Button className="w-full" type="submit" disabled={loading}>
+          <Button
+            className="w-full cursor-pointer"
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "Logging In..." : "Sign In"}
           </Button>
         </form>
@@ -95,7 +115,7 @@ export function LoginForm() {
       <CardFooter className="flex flex-col">
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-primary hover:underline">
+          <Link href="/register" className="text-blue-500 hover:underline">
             Register here
           </Link>
         </p>

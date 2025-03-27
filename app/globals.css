@@ -120,3 +120,7 @@
     @apply bg-background text-foreground;
   }
 }
+::selection {
+  background-color: #bfdbfe; /* Light Blue */
+  color: #000; /* Adjust text color if needed */
+}
