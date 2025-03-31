@@ -1,52 +1,67 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, ArrowRight } from "lucide-react";
+import ThreeDMarqueeDemo from "@/app/3Design/3D-demo";
+import CardSpotlightDemo from "./side-card/card-spotlight-demo";
+import HeroParallaxDemo from "./paralax/hero-parallax-demo";
+import StaticCardsDemo from "./reviews/static-cards-demo";
+import TextGenerateEffectDemo from "./review-text/text-generate-effect-demo";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="container mx-auto py-7 flex justify-between items-center  border-b-3 border-solid border-gray-400">
-        <div className="flex items-center gap-2">
-          <div className="bg-primary/10 p-2 rounded-full">
-            <GraduationCap className="h-6 w-6 text-primary" />
+    <div className="min-h-screen bg-white ">
+      <div className="fixed top-0 left-0 w-full border-b border-gray-200/30 bg-white/50 backdrop-blur-md z-50">
+        <header className="container mx-auto py-5 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/10 p-2 rounded-full backdrop-blur-sm">
+              <GraduationCap className="h-6 w-6 text-primary" />
+            </div>
+            <h1 className="text-xl font-bold">UniTest CBT</h1>
           </div>
-          <h1 className="text-xl font-bold">UniTest CBT</h1>
-        </div>
-        <div>
-          <Link href="/">
-            <button className="inline-flex relative items-center font-medium text-gray-900 hover:text-gray-700 overflow-hidden transition-all duration-300 group mr-5">
-              <span className="relative">
-                Home
-                <span className="absolute left-0 bottom-0 h-px w-full bg-current transform transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
-              </span>
-            </button>
-          </Link>
-          <Link href="/Otherpages/about/">
-            <button className="inline-flex relative items-center font-medium text-gray-900 hover:text-gray-700 overflow-hidden transition-all duration-300 group mr-5">
-              <span className="relative">
-                About
-                <span className="absolute left-0 bottom-0 h-px w-full bg-current transform transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
-              </span>
-            </button>
-          </Link>
-          <Link href="/Otherpages/contact/">
-            <button className="inline-flex relative items-center font-medium text-gray-900 hover:text-gray-700 overflow-hidden transition-all duration-300 group mr-5">
-              <span className="relative">
-                Contact
-                <span className="absolute left-0 bottom-0 h-px w-full bg-current transform transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
-              </span>
-            </button>
-          </Link>
-        </div>
 
-        <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm font-medium hover:underline">
-            Sign In
-          </Link>
-          <Button>Get Started</Button>
-        </div>
-      </header>
+          {/* Navigation Links */}
+          <div className="hidden md:flex gap-6">
+            <Link href="/">
+              <button className="cursor-pointer relative group text-gray-700 hover:text-gray-900 transition-colors">
+                <span className="relative">
+                  Home
+                  <span className="absolute inset-x-0 bottom-0 h-px bg-current transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+                </span>
+              </button>
+            </Link>
+            <Link href="/Otherpages/about/">
+              <button className="cursor-pointer relative group text-gray-700 hover:text-gray-900 transition-colors">
+                <span className="relative">
+                  About
+                  <span className="absolute inset-x-0 bottom-0 h-px bg-current transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+                </span>
+              </button>
+            </Link>
+            <Link href="/Otherpages/contact/">
+              <button className="cursor-pointer relative group text-gray-700 hover:text-gray-900 transition-colors">
+                <span className="relative">
+                  Contact
+                  <span className="absolute inset-x-0 bottom-0 h-px bg-current transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+                </span>
+              </button>
+            </Link>
+          </div>
+
+          {/* Auth Buttons */}
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="text-sm font-medium hover:underline">
+              <button className="signin-button">
+                Sign In
+                <span className="gradient-underline"></span>
+                <span className="hover-underline"></span>
+              </button>
+            </Link>
+            <Button className="cursor-pointer backdrop-blur-sm bg-black hover:bg-gray-500">
+              Get Started
+            </Button>
+          </div>
+        </header>
+      </div>
 
       <main className="container mx-auto py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -72,13 +87,9 @@ export default function Home() {
             </div>
           </div>
           <div className="relative h-[400px] w-full">
-            <Image
-              src="/authimg/niclas-illg-kxubeW6oyE8-unsplash.jpg"
-              alt="Students taking online exams"
-              fill
-              className="object-contain rounded-lg mt-4"
-              priority
-            />
+            <div className="min-h-50 p-10 ">
+              <CardSpotlightDemo />
+            </div>
           </div>
         </div>
 
@@ -149,6 +160,19 @@ export default function Home() {
               outcomes.
             </p>
           </div>
+        </div>
+        <section className="container  py-12">
+          <ThreeDMarqueeDemo />
+        </section>
+        <div className="min-h-screen bg-grid-white/[0.02]">
+          <HeroParallaxDemo />
+        </div>
+        <hr className="mt-30" />
+        <div>
+          <TextGenerateEffectDemo />
+        </div>
+        <div className="min-h-screen">
+          <StaticCardsDemo />
         </div>
       </main>
     </div>

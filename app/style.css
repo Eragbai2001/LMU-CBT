@@ -1,0 +1,66 @@
+.signin-button {
+  position: relative;
+  display: inline-block;
+  font: 500 1.2rem/1.5 system-ui;
+  color: #333;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding-bottom: 4px;
+}
+
+.gradient-underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6);
+  opacity: 0.7;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: underline-flow 3s infinite;
+}
+
+.signin-button:hover .gradient-underline {
+  animation-play-state: paused;
+  opacity: 0;
+}
+
+.hover-underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #000;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
+  opacity: 0;
+}
+
+.signin-button:hover .hover-underline {
+  opacity: 1;
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+@keyframes underline-flow {
+  0% {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  33% {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  66% {
+    transform: scaleX(1);
+    transform-origin: right;
+  }
+  100% {
+    transform: scaleX(0);
+    transform-origin: right;
+  }
+}

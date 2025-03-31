@@ -1,9 +1,18 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+module.exports = {
   images: {
-    domains: ["localhost"], // ✅ Allow all images from this domain
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "aceternity.com",
+        pathname: "/images/**",
+        port: "",
+        search: "",
+      },
+      {
+        protocol: "https",
+        hostname: "your-new-domain.com",
+        pathname: "/images/**",
+      },
+    ],
   },
 };
-
-export default nextConfig;
