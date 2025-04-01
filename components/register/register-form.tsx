@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 
@@ -13,7 +13,6 @@ import { signupSchema } from "@/lib/zod";
 import PasswordStrengthMeter from "../PasswordStrengthMeter";
 
 export function RegisterForm() {
-  const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
