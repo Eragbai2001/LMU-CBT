@@ -1,66 +1,47 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AssessmentCard } from "./assessment-card"
+import { Line } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+import { useEffect, useState } from "react";
 
-export function AssessmentTabs() {
-  const upcomingAssessments = [
-    {
-      title: "Database Systems",
-      status: "upcoming" as const,
-      date: "March 21, 2025",
-      time: "10:00 AM",
-      duration: "90 minutes",
-    },
-    {
-      title: "Computer Networks",
-      status: "due-soon" as const,
-      date: "March 20, 2025",
-      time: "2:00 PM",
-      duration: "60 minutes",
-    },
-    {
-      title: "Software Engineering",
-      status: "practice" as const,
-      date: "March 25, 2025",
-      time: "9:00 AM",
-      duration: "120 minutes",
-    },
-  ]
+// Register chart components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+export default function ProgressChart() {
+  const [chartData, setChartData] = useState<any>(null);
+
+  // Use fake data for now
+  useEffect(() => {
+    // Fake data example:
+    const fakeData = [
+      { date_taken: "2025-01-01", result: "pass" },
+      { date_taken: "2025-01-15", result: "fail" },
+      { date_taken: "2025-02-01", result: "pass" },
+      { date_taken: "2025-02-15", result: "pass" },
+      { date_taken: "2025-03-01", result: "fail" },
+      { date_taken: "2025-03-15", result: "pass" },
+    ];
+
+    // Process fake data to fit chart format
+    const dates = fakeData.map((item) => item.date_taken);
+    const passRates = fakeData.map((item) => (item.result === "pass" ? 100 : 0));
+
+    setChartData({
+      labels: dates,
+      datasets: [
+        {
+          label: "Test Pass Rate (%)",
+          data: passRates,
+          borderColor: "rgba(75, 192, 192, 1)",
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          fill: true,
+        },
+      ],
+    });
+  }, []);
 
   return (
-    <Tabs defaultValue="upcoming">
-      <div className="flex items-center justify-between mb-6">
-        <TabsList>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="courses">My Courses</TabsTrigger>
-          <TabsTrigger value="results">Recent Results</TabsTrigger>
-        </TabsList>
-      </div>
-
-      <TabsContent value="upcoming" className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {upcomingAssessments.map((assessment, index) => (
-            <AssessmentCard
-              key={index}
-              title={assessment.title}
-              status={assessment.status}
-              date={assessment.date}
-              time={assessment.time}
-              duration={assessment.duration}
-            />
-          ))}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="courses" className="space-y-4">
-        {/* Course content would go here */}
-        <p className="text-muted-foreground">Your enrolled courses will appear here.</p>
-      </TabsContent>
-
-      <TabsContent value="results" className="space-y-4">
-        {/* Results content would go here */}
-        <p className="text-muted-foreground">Your recent assessment results will appear here.</p>
-      </TabsContent>
-    </Tabs>
-  )
+    <div>
+      <h2>Your Test Progress</h2>
+      {chartData ? <Line data={chartData} /> : <p>Loading...</p>}
+    </div>
+  );
 }
-

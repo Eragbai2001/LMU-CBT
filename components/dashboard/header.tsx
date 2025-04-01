@@ -25,15 +25,26 @@ export default function UserProfile() {
         setLoading(false);
       }
     }
-    
+
     fetchUser();
   }, []);
 
-  // Display Welcome even during loading
   return (
-    <div>
-      <h1>Welcome{user ? `, ${user.name || user.email || ''}` : ''}!</h1>
-      {loading && <p>Loading user details...</p>}
+    <div className="p-2 sm:p-4">
+      <h1 className="text-lg sm:text-xl font-bold flex flex-wrap items-center gap-1 sm:gap-2">
+        <span className="font-light text-base sm:text-lg text-gray-800">Hello,</span>
+        {loading ? (
+          <span className="w-16 sm:w-24 h-5 sm:h-6 bg-gray-300 animate-pulse rounded"></span>
+        ) : user ? (
+          <span className="text-gray-900 truncate max-w-xs">{user.name}</span>
+        ) : (
+          ""
+        )}
+      </h1>
+
+      <p className="text-gray-500 font-light text-sm sm:text-base py-1 sm:py-2">
+        Lets learn something new today
+      </p>
     </div>
   );
 }
