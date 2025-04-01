@@ -53,6 +53,7 @@ export default function ResetPasswordPage() {
 
       if (res.ok) {
         setIsSuccess(true);
+        // Delay for user to read the success message
       }
     } catch {
       setMessage("Something went wrong. Please try again.");
@@ -100,13 +101,17 @@ export default function ResetPasswordPage() {
                 {message || "Your password has been reset successfully."}
               </div>
               <div className="flex justify-center">
-                <Link
+                <a
                   href="/login"
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent default link behavior
+                    window.location.href = "/login"; // Trigger full page reload
+                  }}
                   className="inline-flex items-center text-sm text-primary hover:underline"
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to login
-                </Link>
+                </a>
               </div>
             </div>
           ) : (

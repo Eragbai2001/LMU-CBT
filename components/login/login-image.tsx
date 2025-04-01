@@ -8,7 +8,7 @@ interface LoginImageProps {
   description?: string;
 }
 
-export function LoginImage({ title, description }: LoginImageProps) {
+export function LoginImage({ title }: LoginImageProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const { images, quotes } = carouselData;
 

@@ -18,7 +18,6 @@ import { GraduationCap } from "lucide-react";
 import Oauth from "@/components/login/oauth";
 import { handleLogin } from "@/app/api/auth/login/LoginHandler";
 
-
 export function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState<string>("");
@@ -102,7 +101,7 @@ export function LoginForm() {
           <div className="text-right">
             <Link
               href="/forgot-password"
-              className="text-sm text-blue-500 hover:underline"
+              className="text-sm text-gray-500 hover:underline"
             >
               Forgot password?
             </Link>
@@ -119,7 +118,7 @@ export function LoginForm() {
       <CardFooter className="flex flex-col">
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-blue-500 hover:underline">
+          <Link href="/register" className="text-gray-500 hover:underline">
             Register here
           </Link>
         </p>

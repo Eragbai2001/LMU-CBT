@@ -8,17 +8,17 @@ import {
   SidebarLink,
 } from "@/components/dashboard/sidebar/sidebar";
 import { ReactNode } from "react";
-import { DashboardHeader } from "@/components/dashboard/header";
+import DashboardHeader from "@/components/dashboard/header";
 import {
-  Grid,
+  LayoutDashboard,
   Timer,
   TrendingUp,
   Shield,
   User,
-  LogOut,
   Moon,
 } from "lucide-react";
 import { SidebarLogo } from "@/components/dashboard/sidebar/sidebar-logo";
+import CustomSignOut from "@/components/dashboard/sidebar/custom-signout";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -49,7 +49,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     {
       label: "DASHBOARD",
       href: "/dashboard",
-      icon: <Grid size={20} className="text-[#3949AB]" />,
+      icon: <LayoutDashboard size={20} className="text-[#3949AB]" />,
     },
     {
       label: "PRACTICE",
@@ -97,18 +97,12 @@ export default function Layout({ children }: { children: ReactNode }) {
             </div>
 
             <div className="flex flex-col gap-4 mt-auto">
-              <SidebarLink
-                link={{
-                  label: "LOG OUT",
-                  href: "/logout",
-                  icon: <LogOut size={20} className="text-red-600" />,
-                }}
-              />
+              <CustomSignOut />
               <SidebarLink
                 link={{
                   label: "NIGHT MODE",
                   href: "#",
-                  icon: <Moon size={20} className="text-gray-600" />,
+                  icon: <Moon size={20} className="text-[#3949AB]0" />,
                 }}
               />
             </div>
@@ -118,10 +112,10 @@ export default function Layout({ children }: { children: ReactNode }) {
 
       <div
         className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300 ${
-          showSidebar ? (open ? "md:ml-[300px]" : "md:ml-[60px]") : ""
+          showSidebar ? (open ? "md:ml-[60px]" : "md:ml-[60px]") : ""
         }`}
       >
-        {showSidebar && <DashboardHeader />}
+         <DashboardHeader />
         <main className="flex-1 p-6 overflow-y-auto">{children}</main>
       </div>
     </div>

@@ -43,7 +43,9 @@ export function RegisterForm() {
 
       if (res.ok) {
         toast.success("Signup successful! Redirecting...");
-        setTimeout(() => router.push("/login"), 2000);
+        setTimeout(() => {
+          window.location.href = "/login"; // ✅ Full reload
+        }, 2000);
       } else {
         const data = await res.json();
         setError(data.error || "Signup failed. Try again.");
@@ -114,7 +116,7 @@ export function RegisterForm() {
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <Button
-          className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white"
+          className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white cursor-pointer"
           type="submit"
           disabled={loading}
         >
@@ -123,10 +125,7 @@ export function RegisterForm() {
 
         <p className="text-center text-sm text-gray-500">
           Already have an account?{" "}
-          <Link
-            href="/login"
-            className="  font-medium hover:underline"
-          >
+          <Link href="/login" className="  font-medium hover:underline">
             Sign in
           </Link>
         </p>
