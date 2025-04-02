@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getUser } from "@/lib/getUser";
+import { Bell } from "lucide-react";
 
 // Define user type
 interface User {
@@ -30,21 +31,28 @@ export default function UserProfile() {
   }, []);
 
   return (
-    <div className="p-2 sm:p-4">
-      <h1 className="text-lg sm:text-xl font-bold flex flex-wrap items-center gap-1 sm:gap-2">
-        <span className="font-light text-base sm:text-lg text-gray-800">Hello,</span>
-        {loading ? (
-          <span className="w-16 sm:w-24 h-5 sm:h-6 bg-gray-300 animate-pulse rounded"></span>
-        ) : user ? (
-          <span className="text-gray-900 truncate max-w-xs">{user.name}</span>
-        ) : (
-          ""
-        )}
-      </h1>
+    <div className="p-2 sm:p-4 flex justify-between">
+      <div>
+        <h1 className="text-lg sm:text-xl font-bold flex flex-wrap items-center gap-1 sm:gap-2">
+          <span className="font-light text-base sm:text-lg text-gray-800">
+            Hello,
+          </span>
+          {loading ? (
+            <span className="w-16 sm:w-24 h-5 sm:h-6 bg-gray-300 animate-pulse rounded"></span>
+          ) : user ? (
+            <span className="text-gray-900 truncate max-w-xs">{user.name}</span>
+          ) : (
+            ""
+          )}
+        </h1>
 
-      <p className="text-gray-500 font-light text-sm sm:text-base py-1 sm:py-2">
-        Lets learn something new today
-      </p>
+        <p className="text-gray-500 font-light text-sm sm:text-base py-1 sm:py-2">
+          Lets learn something new today
+        </p>
+      </div>
+      <button className="p-2 rounded-full hover:bg-gray-100 lg:block hidden">
+        <Bell className="h-5 w-5 text-gray-500" />
+      </button>
     </div>
   );
 }

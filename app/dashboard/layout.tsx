@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { SidebarLogo } from "@/components/dashboard/sidebar/sidebar-logo";
 import CustomSignOut from "@/components/dashboard/sidebar/custom-signout";
+import ProfileCard from "@/components/dashboard/profile-card";
+
 
 export default function Layout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState<boolean>(false);
@@ -44,6 +46,23 @@ export default function Layout({ children }: { children: ReactNode }) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Close sidebar when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const sidebar = document.getElementById("mobile-sidebar");
+      if (open && sidebar && !sidebar.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
 
   if (status === "unauthenticated") return null;
   if (status === "loading") return <p>Loading...</p>;
@@ -78,13 +97,24 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   const showSidebar = pathname.startsWith("/dashboard");
 
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
+      {/* Overlay when sidebar is open on mobile */}
+      {showSidebar && open && (
+        <div
+          className="fixed inset-0  bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
       {showSidebar && (
         <div
-          className={`fixed top-0 left-0 h-full lg:relative lg:flex lg:w-10  ${
+          id="mobile-sidebar"
+          className={`fixed top-0 left-0 h-full z-50 ${
             open ? "block" : "hidden"
-          } sm:hidden md:hidden`}
+          } lg:relative lg:flex lg:w-10`}
         >
           <Sidebar open={open} setOpen={setOpen}>
             <SidebarBody className="justify-between">
@@ -93,12 +123,6 @@ export default function Layout({ children }: { children: ReactNode }) {
               </div>
 
               <div className="flex flex-1 flex-col">
-                <div className="flex items-center justify-between px-4 py-3 lg:hidden">
-                  <SidebarLogo />
-                  <button onClick={() => setOpen(false)} className="p-2">
-                    ✖
-                  </button>
-                </div>
                 <div className="flex flex-col gap-2">
                   {menuLinks.map((link, idx) => (
                     <SidebarLink
@@ -125,26 +149,47 @@ export default function Layout({ children }: { children: ReactNode }) {
       )}
 
       <div
-        className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300 ${
-          showSidebar ?  (open ? "md:ml-[256px]" : "md:ml-[25px]") : ""
+        className={`flex-1 flex flex-col lg:flex-col h-full overflow-hidden transition-all duration-300 ${
+          showSidebar && open ? "lg:ml-[256px]" : "lg:ml-[70px]"
         }`}
       >
         {/* Header for smaller screens */}
-        <div className="w-full sticky top-0 z-40 flex justify-between items-center p-4  lg:hidden">
-          <button onClick={() => setOpen(true)} className="p-2">
+        <div className="w-full sticky top-0 z-30 flex justify-between items-center p-4 bg-white lg:hidden">
+          <button
+            onClick={() => setOpen(!open)}
+            className="p-2 focus:outline-none"
+            aria-label="Toggle menu"
+          >
             <Menu size={24} />
           </button>
           <DashboardHeader />
         </div>
 
-        {/* Header for larger screens */}
-        <div className="hidden lg:block w-full sticky top-0 z-40">
-          <DashboardHeader />
+        {/* Main content container */}
+        <div className="flex flex-col flex-1 overflow-auto">
+          {/* Header for larger screens */}
+          <div className="hidden lg:block sticky top-0 z-30 w-full bg-white px-7">
+            <DashboardHeader />
+            {/* Main content */}
+          </div>
+          <main className="px-10">
+            {children}
+         
+          </main>
         </div>
-
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto w-full">
-          {children}
-        </main>
+      </div>
+      {/* Profile card */}
+      <div className=" flex ">
+        <ProfileCard
+          name="Royal Parvej"
+          username="@royalparvej"
+          avatar="/placeholder.svg?height=100&width=100"
+          stats={{
+            tests: 10,
+            avgHour: 2,
+            enrolled: 12,
+          }}
+        />
       </div>
     </div>
   );
