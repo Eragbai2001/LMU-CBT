@@ -3,7 +3,7 @@ import { CardSpotlight } from "@/app/side-card/ui/card-spotlight";
 export default function CardSpotlightDemo() {
   return (
     <CardSpotlight
-      className="h-96 w-full max-w-[35rem] md:w-[40rem]"
+      className="h-96  xl:max-w-[35rem] lg:max-w-[27rem] lg:w-[40rem]"
       animatedBorder
     >
       <p className="text-xl font-bold relative z-20 mt-2 text-white">

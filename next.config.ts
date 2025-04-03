@@ -13,6 +13,12 @@ module.exports = {
         hostname: "your-new-domain.com",
         pathname: "/images/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };
