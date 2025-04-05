@@ -91,13 +91,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true;
     },
 
-    async session({ session, token }) {
-      if (session?.user) {
-        session.user.id = token.sub!;
-        session.user.email = token.email ?? ""; // ✅ FIXED: Ensure email is always a string
-      }
-      return session;
-    },
+    // async session({ session }) {
+    //   const dbUser = await getNameFromDb(session.user.name!);
+    //   session.user.name = dbUser?.name || null;
+    //   return session;
+    // }
   },
   pages: {
     signIn: "/login",

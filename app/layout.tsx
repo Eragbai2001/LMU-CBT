@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Barlow_Semi_Condensed } from "next/font/google";
 import "./globals.css";
+import { SessionProvider } from "next-auth/react";
 
 // Correct font import - "Geist" should be "Geist_Sans"
 const geistSans = Geist({
@@ -36,7 +37,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${barlow.variable} font-sans antialiased`}
       >
-        {children}
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );

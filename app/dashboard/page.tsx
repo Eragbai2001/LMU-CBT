@@ -1,46 +1,30 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Sidebar } from "@/components/dashboard/sidebar/sidebar"
-import { DashboardHeader } from "@/components/dashboard/header"
-import { AssessmentTabs } from "@/components/dashboard/assessment-tabs"
+import ProgressChart from "@/components/dashboard/assessment-tabs";
+import CourseStatistics from "@/components/dashboard/course-statistics";
+import Milestones from "@/components/dashboard/milestone";
+import StatCard from "@/components/dashboard/stat-card";
+import { Card } from "@/components/ui/card";
 
-export default function DashboardPage() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 1024)
-      if (window.innerWidth < 1024) {
-        setIsSidebarOpen(false)
-      } else {
-        setIsSidebarOpen(true)
-      }
-    }
-
-    checkIfMobile()
-    window.addEventListener("resize", checkIfMobile)
-
-    return () => {
-      window.removeEventListener("resize", checkIfMobile)
-    }
-  }, [])
-
+export default function DashboardMetrics() {
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
-      <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} isMobile={isMobile} />
+    <div className="min-h-screen bg-gray-50  flex flex-col gap-11">
+      <StatCard />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        
+        {/* ProgressChart */}
 
-      {/* Main content */}
-      <div
-        className={`flex-1 flex flex-col h-full overflow-hidden ${isMobile ? "" : isSidebarOpen ? "ml-64" : "ml-20"}`}
-      >
-        <DashboardHeader />
-        <main className="flex-1 p-6 overflow-y-auto">
-          <AssessmentTabs />
-        </main>
+        <ProgressChart />
+
+        <div className="col-span-1 flex flex-col gap-6">
+          <Card className="p-4">
+            <Milestones />
+          </Card>
+          <Card className="p-4">
+            <CourseStatistics />
+          </Card>
+        </div>
       </div>
     </div>
-  )
+  );
 }
-

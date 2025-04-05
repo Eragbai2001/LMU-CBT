@@ -1,66 +1,111 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AssessmentCard } from "./assessment-card"
+import React, { useEffect, useState } from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import { Card } from '../ui/card';
 
-export function AssessmentTabs() {
-  const upcomingAssessments = [
-    {
-      title: "Database Systems",
-      status: "upcoming" as const,
-      date: "March 21, 2025",
-      time: "10:00 AM",
-      duration: "90 minutes",
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+const WeeklyProgressBarChart = () => {
+  const [chartData, setChartData] = useState<{
+    labels: string[];
+    datasets: { label: string; data: number[]; backgroundColor: string; borderColor: string; borderWidth: number }[];
+  } | null>(null);
+
+  useEffect(() => {
+    // Sample data - replace with your actual data
+    const fakeData = [
+      { day: 'Sun', score: 70, time_spent: 10 },
+      { day: 'Mon', score: 60, time_spent: 15 },
+      { day: 'Tue', score: 80, time_spent: 12 },
+      { day: 'Wed', score: 90, time_spent: 8 },
+      { day: 'Thu', score: 70, time_spent: 14 },
+      { day: 'Fri', score: 85, time_spent: 9 },
+      { day: 'Sat', score: 65, time_spent: 11 }
+    ];
+
+    const labels = fakeData.map((item) => item.day);
+    const scores = fakeData.map((item) => item.score);
+    const times = fakeData.map((item) => item.time_spent);
+
+    setChartData({
+      labels,
+      datasets: [
+        {
+          label: "Test Score (%)",
+          data: scores,
+          backgroundColor: "#EC4899",
+          borderColor: "#EC4899",
+          borderWidth: 1,
+        },
+        {
+          label: "Time Spent (mins)",
+          data: times,
+          backgroundColor: "#3B82F6",
+          borderColor: "#3B82F6",
+          borderWidth: 1,
+        },
+      ],
+    });
+  }, []);
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        grid: {
+          display: false
+        }
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: "rgba(0, 0, 0, 0.05)"
+        }
+      }
     },
-    {
-      title: "Computer Networks",
-      status: "due-soon" as const,
-      date: "March 20, 2025",
-      time: "2:00 PM",
-      duration: "60 minutes",
-    },
-    {
-      title: "Software Engineering",
-      status: "practice" as const,
-      date: "March 25, 2025",
-      time: "9:00 AM",
-      duration: "120 minutes",
-    },
-  ]
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          usePointStyle: true,
+          padding: 20
+        }
+      }
+    }
+  };
 
   return (
-    <Tabs defaultValue="upcoming">
-      <div className="flex items-center justify-between mb-6">
-        <TabsList>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="courses">My Courses</TabsTrigger>
-          <TabsTrigger value="results">Recent Results</TabsTrigger>
-        </TabsList>
+    <Card className="col-span-1 p-4 lg:col-span-2">
+      <h1 className="text-2xl font-bold mb-6">Weekly Test Progress</h1>
+      <div className="h-64 md:h-96 w-full">
+        {chartData ? (
+          <Bar data={chartData} options={options} />
+        ) : (
+          <p>Loading...</p>
+        )}
       </div>
+      <div className="mt-4 text-gray-700">
+        Total Time Spent: 79 mins
+      </div>
+    </Card>
+  );
+};
 
-      <TabsContent value="upcoming" className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {upcomingAssessments.map((assessment, index) => (
-            <AssessmentCard
-              key={index}
-              title={assessment.title}
-              status={assessment.status}
-              date={assessment.date}
-              time={assessment.time}
-              duration={assessment.duration}
-            />
-          ))}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="courses" className="space-y-4">
-        {/* Course content would go here */}
-        <p className="text-muted-foreground">Your enrolled courses will appear here.</p>
-      </TabsContent>
-
-      <TabsContent value="results" className="space-y-4">
-        {/* Results content would go here */}
-        <p className="text-muted-foreground">Your recent assessment results will appear here.</p>
-      </TabsContent>
-    </Tabs>
-  )
-}
-
+export default WeeklyProgressBarChart;

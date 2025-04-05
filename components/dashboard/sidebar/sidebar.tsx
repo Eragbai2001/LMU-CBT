@@ -1,152 +1,207 @@
 "use client";
-
-import { useState, useEffect } from "react";
-import { getSession } from "next-auth/react";
-import {
-  BookOpen,
-  X,
-  Menu,
-  Home,
-  FileText,
-  Award,
-  BarChart2,
-  Settings,
-  User,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SidebarItem } from "./sidebar-item";
-import UserProfile from "./user-profile";
-import type { Session } from "next-auth";
+import Link, { type LinkProps } from "next/link";
+import type React from "react";
+import { useState, createContext, useContext } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { IconMenu2, IconX } from "@tabler/icons-react";
 
-interface SidebarProps {
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: (open: boolean) => void;
-  isMobile: boolean;
+interface Links {
+  label: string;
+  href: string;
+  icon: React.JSX.Element | React.ReactNode;
 }
 
-export function Sidebar({ isSidebarOpen, setIsSidebarOpen, isMobile }: SidebarProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [session, setSession] = useState<Session | null>(null); 
+interface SidebarContextProps {
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  animate: boolean;
+}
 
-  useEffect(() => {
-    const fetchUserSession = async () => {
-      const userSession = await getSession();
-      setSession(userSession);
-    };
+const SidebarContext = createContext<SidebarContextProps | undefined>(
+  undefined
+);
 
-    fetchUserSession();
-  }, []);
+export const useSidebar = () => {
+  const context = useContext(SidebarContext);
+  if (!context) {
+    throw new Error("useSidebar must be used within a SidebarProvider");
+  }
+  return context;
+};
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+export const SidebarProvider = ({
+  children,
+  open: openProp,
+  setOpen: setOpenProp,
+  animate = true,
+}: {
+  children: React.ReactNode;
+  open?: boolean;
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  animate?: boolean;
+}) => {
+  const [openState, setOpenState] = useState(false);
 
-  const navItems = [
-    { icon: Home, label: "Dashboard", href: "/dashboard", active: true },
-    { icon: BookOpen, label: "Courses", href: "/dashboard/courses" },
-    { icon: FileText, label: "Assessments", href: "/dashboard/exams" },
-    { icon: BarChart2, label: "Results", href: "/dashboard/results" },
-    { icon: Award, label: "Achievements", href: "/dashboard/achievements" },
-    { icon: User, label: "Profile", href: "/dashboard/profile" },
-    { icon: Settings, label: "Settings", href: "/dashboard/settings" },
-  ];
+  const open = openProp !== undefined ? openProp : openState;
+  const setOpen = setOpenProp !== undefined ? setOpenProp : setOpenState;
 
   return (
+    <SidebarContext.Provider value={{ open, setOpen, animate: animate }}>
+      {children}
+    </SidebarContext.Provider>
+  );
+};
+
+export const Sidebar = ({
+  children,
+  open,
+  setOpen,
+  animate,
+}: {
+  children: React.ReactNode;
+  open?: boolean;
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  animate?: boolean;
+}) => {
+  return (
+    <SidebarProvider open={open} setOpen={setOpen} animate={animate}>
+      {children}
+    </SidebarProvider>
+  );
+};
+
+export const SidebarBody = (props: React.ComponentProps<typeof motion.div>) => {
+  return (
     <>
-      {/* Mobile sidebar toggle */}
-      <button
-        onClick={toggleSidebar}
-        className="lg:hidden fixed bottom-4 right-4 z-50 p-3 rounded-full bg-primary text-white shadow-lg"
-      >
-        {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
-
-      {/* Sidebar overlay for mobile */}
-      {isMobile && isSidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={cn(
-          "h-full bg-white border-r shadow-sm transition-all duration-300 ease-in-out z-40",
-          isMobile
-            ? isSidebarOpen
-              ? "fixed inset-y-0 left-0 w-64"
-              : "fixed inset-y-0 -left-64 w-64"
-            : isSidebarOpen
-            ? "w-64"
-            : "w-20",
-          "flex flex-col"
-        )}
-        onMouseEnter={() => !isMobile && setIsHovered(true)}
-        onMouseLeave={() => !isMobile && setIsHovered(false)}
-      >
-        <div className="p-4 border-b flex items-center justify-between">
-          <div className="flex items-center gap-2 overflow-hidden">
-            <div className="bg-primary/10 p-1.5 rounded-full flex-shrink-0">
-              <BookOpen className="h-5 w-5 text-primary" />
-            </div>
-            <h1
-              className={cn(
-                "text-lg font-bold transition-opacity duration-200 whitespace-nowrap",
-                !isSidebarOpen && !isHovered && !isMobile ? "opacity-0 w-0" : "opacity-100 w-auto"
-              )}
-            >
-              UniTest CBT
-            </h1>
-          </div>
-          {!isMobile && (
-            <button onClick={toggleSidebar} className="text-gray-500 hover:text-gray-700 flex-shrink-0">
-              {isSidebarOpen ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              )}
-            </button>
-          )}
-        </div>
-
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {navItems.map((item, index) => (
-            <SidebarItem
-              key={index}
-              icon={item.icon}
-              label={item.label}
-              href={item.href}
-              active={item.active}
-              isCollapsed={isSidebarOpen}
-              isHovered={isHovered}
-              isMobile={isMobile}
-            />
-          ))}
-        </nav>
-
-        {/* Pass session data to UserProfile */}
-        <UserProfile session={session} />
-      </div>
+      <DesktopSidebar {...props} />
+      <MobileSidebar {...(props as React.ComponentProps<"div">)} />
     </>
   );
-}
+};
+
+export const DesktopSidebar = ({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof motion.div>) => {
+  const { open, setOpen, animate } = useSidebar();
+  return (
+    <motion.div
+      className={cn(
+        "h-full px-4 py-4 hidden md:flex md:flex-col bg-white shadow-lg w-[300px] shrink-0",
+        className
+      )}
+      animate={{
+        width: animate ? (open ? "300px" : "60px") : "300px",
+      }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+export const MobileSidebar = ({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"div">) => {
+  const { open, setOpen } = useSidebar();
+  return (
+    <div
+      className={cn(
+        "h-10 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-white w-full"
+      )}
+      {...props}
+    >
+      <div className="flex justify-end z-20 w-full">
+        <IconMenu2
+          className="text-neutral-800"
+          onClick={() => setOpen(!open)}
+        />
+      </div>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ x: "-100%", opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: "-100%", opacity: 0 }}
+            transition={{
+              duration: 0.3,
+              ease: "easeInOut",
+            }}
+            className={cn(
+              "fixed h-full w-full inset-0 bg-white p-10 z-[100] flex flex-col justify-between",
+              className
+            )}
+          >
+            <div
+              className="absolute right-10 top-10 z-50 text-neutral-800"
+              onClick={() => setOpen(!open)}
+            >
+              <IconX />
+            </div>
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export const SidebarLink = ({
+  link,
+  className,
+  onClick, // Add an onClick prop
+  ...props
+}: {
+  link: Links;
+  className?: string;
+  onClick?: () => void; // Optional click handler
+  props?: LinkProps;
+}) => {
+  const { open, animate } = useSidebar();
+  return link.href ? (
+    <Link
+      href={link.href}
+      className={cn(
+        "flex items-center justify-start gap-2 group/sidebar py-2 ",
+        className
+      )}
+      {...props}
+    >
+      {link.icon}
+      <motion.span
+        animate={{
+          display: animate ? (open ? "inline-block" : "none") : "inline-block",
+          opacity: animate ? (open ? 1 : 0) : 1,
+        }}
+        className="text-neutral-700 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
+      >
+        {link.label}
+      </motion.span>
+    </Link>
+  ) : (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex items-center justify-start gap-2 group/sidebar py-2 w-full cursor-pointer",
+        className
+      )}
+    >
+      {link.icon}
+      <motion.span
+        animate={{
+          display: animate ? (open ? "inline-block" : "none") : "inline-block",
+          opacity: animate ? (open ? 1 : 0) : 1,
+        }}
+        className="text-neutral-700 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
+      >
+        {link.label}
+      </motion.span>
+    </button>
+  );
+};

@@ -56,7 +56,10 @@ export function LoginForm() {
           <div className="bg-primary/10 p-2 rounded-full">
             <GraduationCap className="h-6 w-6 text-primary" />
           </div>
-          <span className="text-xl font-bold">UniTest CBT</span>
+          <div className="flex flex-1 flex-col">
+            <span className="font-bold text-lg">UniTest CBT</span>
+            {/* Rest of your sidebar content */}
+          </div>
         </div>
         <CardTitle className="text-2xl">Welcome back</CardTitle>
         <CardDescription>Sign in to your account to continue</CardDescription>
@@ -98,7 +101,7 @@ export function LoginForm() {
           <div className="text-right">
             <Link
               href="/forgot-password"
-              className="text-sm text-blue-500 hover:underline"
+              className="text-sm text-gray-500 hover:underline"
             >
               Forgot password?
             </Link>
@@ -115,7 +118,7 @@ export function LoginForm() {
       <CardFooter className="flex flex-col">
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-blue-500 hover:underline">
+          <Link href="/register" className="text-gray-500 hover:underline">
             Register here
           </Link>
         </p>
