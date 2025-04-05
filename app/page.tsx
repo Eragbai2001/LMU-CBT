@@ -9,6 +9,7 @@ import TextGenerateEffectDemo from "./review-text/text-generate-effect-demo";
 import FlipWordsDemo from "./Flip-word/flip-words-demo";
 import AnimatedTestimonialsDemo from "./Teams/animated-testimonials-demo";
 import FloatingDockDemo from "./Icons/floating-dock-demo";
+import SignInButton from "./sign-in/signin";
 
 export default function Home() {
   return (
@@ -25,11 +26,7 @@ export default function Home() {
           {/* Auth Buttons */}
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm font-medium hover:underline">
-              <button className="signin-button cursor-pointer">
-                Sign In
-                <span className="gradient-underline"></span>
-                <span className="hover-underline"></span>
-              </button>
+              <SignInButton />
             </Link>
             <Button className="cursor-pointer backdrop-blur-sm text-white bg-black hover:bg-gray-500">
               Get Started
