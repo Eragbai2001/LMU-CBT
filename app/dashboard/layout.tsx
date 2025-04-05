@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { SidebarLogo } from "@/components/dashboard/sidebar/sidebar-logo";
 import CustomSignOut from "@/components/dashboard/sidebar/custom-signout";
-import ProfileCard from "@/components/dashboard/profile-card";
 
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -90,13 +89,12 @@ export default function Layout({ children }: { children: ReactNode }) {
     },
     {
       label: "PROFILE",
-      href: "/profile",
+      href: "/dashboard/profile",
       icon: <User size={20} className="text-[#3949AB]" />,
     },
   ];
 
   const showSidebar = pathname.startsWith("/dashboard");
-
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
@@ -168,29 +166,14 @@ export default function Layout({ children }: { children: ReactNode }) {
         {/* Main content container */}
         <div className="flex flex-col flex-1 overflow-auto">
           {/* Header for larger screens */}
-          <div className="hidden lg:block sticky top-0 z-30 w-full bg-white px-7">
+          <div className="hidden lg:block  w-full  px-7">
             <DashboardHeader />
             {/* Main content */}
           </div>
-          <main className="px-10">
-            {children}
-         
-          </main>
+          <main className="px-10">{children}</main>
         </div>
       </div>
       {/* Profile card */}
-      <div className=" flex ">
-        <ProfileCard
-          name="Royal Parvej"
-          username="@royalparvej"
-          avatar="/placeholder.svg?height=100&width=100"
-          stats={{
-            tests: 10,
-            avgHour: 2,
-            enrolled: 12,
-          }}
-        />
-      </div>
     </div>
   );
 }

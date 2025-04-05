@@ -1,51 +1,45 @@
-import { Line } from "react-chartjs-2";
+import React, { useEffect, useState } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
-  Legend,
-} from "chart.js";
-import { useEffect, useState } from "react";
+  Legend
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import { Card } from '../ui/card';
 
+// Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend
 );
 
-export default function ProgressChart() {
+const WeeklyProgressBarChart = () => {
   const [chartData, setChartData] = useState<{
     labels: string[];
-    datasets: {
-      label: string;
-      data: number[];
-      borderColor: string;
-      backgroundColor: string;
-      fill: boolean;
-    }[];
+    datasets: { label: string; data: number[]; backgroundColor: string; borderColor: string; borderWidth: number }[];
   } | null>(null);
 
   useEffect(() => {
-    // Fake test data
+    // Sample data - replace with your actual data
     const fakeData = [
-      { date_taken: "Sun", score: 75, time_spent: 10 },
-      { date_taken: "Mon", score: 60, time_spent: 15 },
-      { date_taken: "Tue", score: 80, time_spent: 12 },
-      { date_taken: "Wed", score: 90, time_spent: 8 }, // Active day
-      { date_taken: "Thu", score: 70, time_spent: 14 },
-      { date_taken: "Fri", score: 85, time_spent: 9 },
-      { date_taken: "Sat", score: 65, time_spent: 11 },
+      { day: 'Sun', score: 70, time_spent: 10 },
+      { day: 'Mon', score: 60, time_spent: 15 },
+      { day: 'Tue', score: 80, time_spent: 12 },
+      { day: 'Wed', score: 90, time_spent: 8 },
+      { day: 'Thu', score: 70, time_spent: 14 },
+      { day: 'Fri', score: 85, time_spent: 9 },
+      { day: 'Sat', score: 65, time_spent: 11 }
     ];
 
-    const labels = fakeData.map((item) => item.date_taken);
+    const labels = fakeData.map((item) => item.day);
     const scores = fakeData.map((item) => item.score);
     const times = fakeData.map((item) => item.time_spent);
 
@@ -55,26 +49,63 @@ export default function ProgressChart() {
         {
           label: "Test Score (%)",
           data: scores,
+          backgroundColor: "#EC4899",
           borderColor: "#EC4899",
-          backgroundColor: "rgba(236, 72, 153, 0.2)",
-          fill: true,
+          borderWidth: 1,
         },
         {
           label: "Time Spent (mins)",
           data: times,
+          backgroundColor: "#3B82F6",
           borderColor: "#3B82F6",
-          backgroundColor: "rgba(59, 130, 246, 0.2)",
-          fill: true,
+          borderWidth: 1,
         },
       ],
     });
   }, []);
 
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        grid: {
+          display: false
+        }
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: "rgba(0, 0, 0, 0.05)"
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          usePointStyle: true,
+          padding: 20
+        }
+      }
+    }
+  };
+
   return (
-    <div className="w-[50rem]">
-      <h2 className="text-xl font-bold mb-2">Weekly Test Progress</h2>
-      {chartData ? <Line data={chartData} /> : <p>Loading...</p>}
-      <p className="mt-4 text-lg font-semibold">Total Time Spent: 79 mins</p>
-    </div>
+    <Card className="col-span-1 p-4 lg:col-span-2">
+      <h1 className="text-2xl font-bold mb-6">Weekly Test Progress</h1>
+      <div className="h-64 md:h-96 w-full">
+        {chartData ? (
+          <Bar data={chartData} options={options} />
+        ) : (
+          <p>Loading...</p>
+        )}
+      </div>
+      <div className="mt-4 text-gray-700">
+        Total Time Spent: 79 mins
+      </div>
+    </Card>
   );
-}
+};
+
+export default WeeklyProgressBarChart;

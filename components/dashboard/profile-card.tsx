@@ -15,7 +15,7 @@ interface ProfileCardProps {
 export default function ProfileCard({
   name,
   username,
-  avatar,
+  
   stats,
 }: ProfileCardProps) {
   return (
@@ -31,7 +31,7 @@ export default function ProfileCard({
       <div className="flex flex-col items-center">
         <div className="relative">
           <Image
-            src={avatar || "/placeholder.svg"}
+            src={ "/profil.jpeg"}
             alt={name}
             width={100}
             height={100}

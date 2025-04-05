@@ -1,24 +1,29 @@
 "use client";
 
 import ProgressChart from "@/components/dashboard/assessment-tabs";
-import StatsGroup from "@/components/dashboard/stats-group";
+import CourseStatistics from "@/components/dashboard/course-statistics";
+import Milestones from "@/components/dashboard/milestone";
+import StatCard from "@/components/dashboard/stat-card";
+import { Card } from "@/components/ui/card";
 
 export default function DashboardMetrics() {
-  const hoursSpent = 10;
-  const overallResult = 85;
-  const completedCourses = 5;
   return (
-    <div className=" flex items-center gap-32">
-      <div className="">
-        <ProgressChart />
-      </div>
+    <div className="min-h-screen bg-gray-50  flex flex-col gap-11">
+      <StatCard />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        
+        {/* ProgressChart */}
 
-      <div className="">
-        <StatsGroup
-          hoursSpent={hoursSpent}
-          overallResult={overallResult}
-          completedCourses={completedCourses}
-        />
+        <ProgressChart />
+
+        <div className="col-span-1 flex flex-col gap-6">
+          <Card className="p-4">
+            <Milestones />
+          </Card>
+          <Card className="p-4">
+            <CourseStatistics />
+          </Card>
+        </div>
       </div>
     </div>
   );
