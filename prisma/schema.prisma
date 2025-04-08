@@ -23,3 +23,14 @@ model User {
   resetTokenExpiry  DateTime?
   createdAt         DateTime @default(now())
 }
+
+model PracticeTest {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  icon        String
+  questionCount Int
+  duration    Int       // in minutes
+  isPopular   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+}

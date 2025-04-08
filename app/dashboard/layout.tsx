@@ -22,7 +22,6 @@ import {
 import { SidebarLogo } from "@/components/dashboard/sidebar/sidebar-logo";
 import CustomSignOut from "@/components/dashboard/sidebar/custom-signout";
 
-
 export default function Layout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState<boolean>(false);
   const { status } = useSession();
@@ -74,7 +73,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     },
     {
       label: "PRACTICE",
-      href: "/practice",
+      href: "/dashboard/practice",
       icon: <Timer size={20} className="text-[#3949AB]" />,
     },
     {
