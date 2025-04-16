@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 export default function DashboardMetrics() {
   return (
     <div className="min-h-screen bg-gray-50  flex flex-col gap-11">
+      
       <StatCard />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         

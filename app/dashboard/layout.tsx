@@ -94,6 +94,8 @@ export default function Layout({ children }: { children: ReactNode }) {
   ];
 
   const showSidebar = pathname.startsWith("/dashboard");
+  // Add this below your existing pathname check for the sidebar
+  const showHeader = !pathname.includes("/dashboard/test");
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
@@ -151,24 +153,28 @@ export default function Layout({ children }: { children: ReactNode }) {
         }`}
       >
         {/* Header for smaller screens */}
-        <div className="w-full sticky top-0 z-30 flex justify-between items-center p-4 bg-white lg:hidden">
-          <button
-            onClick={() => setOpen(!open)}
-            className="p-2 focus:outline-none"
-            aria-label="Toggle menu"
-          >
-            <Menu size={24} />
-          </button>
-          <DashboardHeader />
-        </div>
+        {showHeader && (
+          <div className="w-full sticky top-0 z-30 flex justify-between items-center p-4 bg-white lg:hidden">
+            <button
+              onClick={() => setOpen(!open)}
+              className="p-2 focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              <Menu size={24} />
+            </button>
+            <DashboardHeader />
+          </div>
+        )}
 
         {/* Main content container */}
         <div className="flex flex-col flex-1 overflow-auto">
           {/* Header for larger screens */}
-          <div className="hidden lg:block  w-full  px-7">
-            <DashboardHeader />
-            {/* Main content */}
-          </div>
+          {showHeader && (
+            <div className="hidden lg:block  w-full  px-7">
+              <DashboardHeader />
+              {/* Main content */}
+            </div>
+          )}
           <main className="px-10">{children}</main>
         </div>
       </div>

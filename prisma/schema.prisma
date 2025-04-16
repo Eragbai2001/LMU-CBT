@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
+// This is your Prisma schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -13,24 +10,67 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id                String   @id @default(uuid())
+  id                String    @id @default(uuid())
   name              String
-  email             String   @unique
+  email             String    @unique
   password          String?
-  resetToken        String?  @unique
+  resetToken        String?   @unique
   resetTokenExpiry  DateTime?
-  createdAt         DateTime @default(now())
+  createdAt         DateTime  @default(now())
 }
 
 model PracticeTest {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  icon        String
-  questionCount Int
-  duration    Int       // in minutes
-  isPopular   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
+  id             String            @id @default(cuid())
+  title          String
+  description    String
+  icon           String
+  isPopular      Boolean           @default(false)
+  questionCount  Int
+  duration       Int?
+  durationOptions Duration[]       @relation("TestDurations")
+  yearOptions    Year[]            @relation("TestYears")
+  sessions       PracticeSession[]
+  questions      Question[]
 }
+
+model Duration {
+  id        String            @id @default(cuid())
+  minutes   Int
+  tests     PracticeTest[]    @relation("TestDurations")
+  sessions  PracticeSession[]
+}
+
+model Year {
+  id        String            @id @default(cuid())
+  value     Int
+  tests     PracticeTest[]    @relation("TestYears")
+  sessions  PracticeSession[]
+}
+
+model PracticeSession {
+  id           String       @id @default(cuid())
+  userId       String
+  testId       String
+  durationId   String
+  yearId       String
+  startedAt    DateTime     @default(now())
+
+  test         PracticeTest @relation(fields: [testId], references: [id])
+  duration     Duration     @relation(fields: [durationId], references: [id])
+  year         Year         @relation(fields: [yearId], references: [id])
+}
+
+
+model Question {
+  id             String        @id @default(cuid())
+  content        String
+  options        String[]
+  correctAnswer  String
+  solution       String?       // ✅ Optional with ?
+  topic          String?       // ✅ Optional with ?
+  test           PracticeTest @relation(fields: [testId], references: [id])
+  testId         String
+}
+
+

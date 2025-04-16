@@ -1,11 +1,24 @@
+"use client";
+import { TestData } from "@/app/create-test/page";
 import PracticeTests from "@/components/dashboard/practice/practice";
 import { Search } from "lucide-react";
-import React from "react";
+import { useState } from "react";
 
-const page = () => {
+const Page = () => {
+  const [testData, setTestData] = useState<TestData>({
+    title: "",
+    description: "",
+    icon: "sigma",
+    totalQuestions: 30,
+    duration: 60,
+    year: new Date().getFullYear(),
+    questions: [],
+    isPopular: false,
+    questionCount: 0,
+  });
   return (
     <div className="min-h-screen w-full ">
-      <div className="max-w-7xl ">
+      <div className="w-full ">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800">
             Available Practice Tests
@@ -21,10 +34,10 @@ const page = () => {
           </div>
         </div>
 
-        <PracticeTests />
+        <PracticeTests testData={testData} />
       </div>
     </div>
   );
 };
 
-export default page;
+export default Page;

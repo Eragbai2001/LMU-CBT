@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Clock, FileText, ArrowRight, ChevronRight } from "lucide-react";
 import { Sigma, FlaskConical, BookOpen, Brain } from "lucide-react";
+import TestPopupModal from "./TestPopupModal";
 
 interface Test {
   id: string | number;
@@ -10,10 +11,11 @@ interface Test {
   description: string;
   isPopular?: boolean;
   questionCount: number;
+  durationOptions: { id: string; minutes: number }[];
+  yearOptions: { id: string; value: number }[];
   duration: number;
 }
 
-// Map to convert icon string names to Lucide components
 const iconMap: Record<string, React.ReactNode> = {
   sigma: <Sigma className="w-6 h-6" />,
   "flask-conical": <FlaskConical className="w-6 h-6" />,
@@ -25,11 +27,13 @@ export default function PracticeTests() {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [selectedTest, setSelectedTest] = useState<Test | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/practice-tests")
       .then((res) => res.json())
       .then((data) => {
+        console.log(data); // Debug the fetched data
         setTests(data);
         setLoading(false);
       })
@@ -64,10 +68,10 @@ export default function PracticeTests() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {displayedTests.map((test: Test) => (
+        {displayedTests.map((test) => (
           <div
             key={test.id}
-            className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100  cursor-pointer"
+            className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer"
           >
             <div className="flex justify-between items-start mb-4">
               <div className="w-12 h-12 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full">
@@ -95,7 +99,10 @@ export default function PracticeTests() {
             </div>
 
             <div className="mt-2 pt-3 border-t border-gray-100">
-              <button className="w-full flex items-center justify-center py-2 px-4 bg-blue-50  text-blue-600 font-medium rounded-lg text-sm transition-colors hover:bg-blue-600 hover:text-white cursor-pointer">
+              <button
+                onClick={() => setSelectedTest(test)}
+                className="w-full flex items-center justify-center py-2 px-4 bg-blue-50 text-blue-600 font-medium rounded-lg text-sm transition-colors hover:bg-blue-600 hover:text-white cursor-pointer"
+              >
                 Start Practice
                 <ArrowRight size={16} className="ml-2" />
               </button>
@@ -119,6 +126,13 @@ export default function PracticeTests() {
             />
           </button>
         </div>
+      )}
+
+      {selectedTest && (
+        <TestPopupModal
+          test={selectedTest}
+          onClose={() => setSelectedTest(null)}
+        />
       )}
     </div>
   );
