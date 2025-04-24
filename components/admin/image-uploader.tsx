@@ -1,93 +1,100 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState, useRef } from "react"
-import { Upload, X, ImageIcon, AlertCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
-import Image from "next/image"
+import React, { useState, useRef } from "react";
+import { Upload, X, ImageIcon, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface ImageUploaderProps {
-  image?: string
-  onImageChange: (imageUrl?: string) => void
-  error?: string
+  image?: string;
+  onImageChange: (imageUrl?: string) => void;
+  error?: string;
 }
 
-export default function ImageUploader({ image, onImageChange, error }: ImageUploaderProps) {
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+export default function ImageUploader({
+  image,
+  onImageChange,
+  error,
+}: ImageUploaderProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     // Validate file type
-    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!validTypes.includes(file.type)) {
-      onImageChange(undefined)
-      return
+      onImageChange(undefined);
+      alert(
+        "Invalid file type. Please upload a JPEG, PNG, GIF, or WEBP image."
+      );
+      return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      onImageChange(undefined)
-      return
+      onImageChange(undefined);
+      alert("File size exceeds 5MB. Please upload a smaller image.");
+      return;
     }
 
-    // Simulate upload to Cloudinary
-    setIsUploading(true)
-    setUploadProgress(0)
+    setIsUploading(true);
+    setUploadProgress(0);
 
-    // Create a simulated progress interval
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(interval)
-          return 95
-        }
-        return prev + 5
-      })
-    }, 100)
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
 
-    // Simulate upload completion after 2 seconds
-    setTimeout(() => {
-      clearInterval(interval)
-      setUploadProgress(100)
+      const res = await fetch("/api/auth/uploadImage", {
+        method: "POST",
+        body: formData, // Send FormData directly
+      });
 
-      // Create a fake Cloudinary URL
-      const fakeCloudinaryUrl = `https://res.cloudinary.com/demo/image/upload/${Date.now()}_${file.name.replace(/\s+/g, "_")}`
+      if (!res.ok) {
+        throw new Error("Failed to upload image");
+      }
 
-      // Update the image URL
-      onImageChange(fakeCloudinaryUrl)
-
-      // Reset upload state
-      setTimeout(() => {
-        setIsUploading(false)
-        setUploadProgress(0)
-      }, 500)
-    }, 2000)
-  }
+      const data = await res.json();
+      onImageChange(data.url); // Update the image URL with the uploaded image's URL
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(100); // Set progress to 100% after completion
+    }
+  };
 
   const removeImage = () => {
-    onImageChange(undefined)
+    onImageChange(undefined);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
-  }
+  };
 
   const triggerFileInput = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.click()
+      fileInputRef.current.click();
     }
-  }
+  };
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">Question Image (Optional)</label>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Question Image (Optional)
+      </label>
 
       {/* Hidden file input */}
-      <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImageUpload}
+        accept="image/*"
+        className="hidden"
+      />
 
       {/* Image preview or upload button */}
       {image ? (
@@ -96,15 +103,12 @@ export default function ImageUploader({ image, onImageChange, error }: ImageUplo
             {/* Image preview */}
             <div className="relative w-full h-full">
               <Image
-                src="/placeholder.svg?height=200&width=400"
+                src={image}
                 alt="Question image preview"
                 width={400}
                 height={200}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 text-white">
-                <p className="text-sm">Image Preview</p>
-              </div>
             </div>
           </div>
 
@@ -122,8 +126,10 @@ export default function ImageUploader({ image, onImageChange, error }: ImageUplo
           onClick={triggerFileInput}
           className={cn(
             "border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors",
-            isUploading ? "bg-blue-50 border-blue-300" : "border-gray-300 hover:border-blue-400 hover:bg-blue-50",
-            error ? "border-red-300 bg-red-50" : "",
+            isUploading
+              ? "bg-blue-50 border-blue-300"
+              : "border-gray-300 hover:border-blue-400 hover:bg-blue-50",
+            error ? "border-red-300 bg-red-50" : ""
           )}
         >
           {isUploading ? (
@@ -131,7 +137,9 @@ export default function ImageUploader({ image, onImageChange, error }: ImageUplo
               <div className="flex items-center justify-center mb-2">
                 <Upload className="h-5 w-5 text-blue-500 animate-pulse" />
               </div>
-              <p className="text-sm text-center text-blue-600 mb-2">Uploading image...</p>
+              <p className="text-sm text-center text-blue-600 mb-2">
+                Uploading image...
+              </p>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
                   className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
@@ -144,7 +152,9 @@ export default function ImageUploader({ image, onImageChange, error }: ImageUplo
               <ImageIcon className="h-10 w-10 text-gray-400 mb-2" />
               <p className="text-sm text-gray-500 text-center">
                 Click to upload an image
-                <span className="block text-xs mt-1">JPEG, PNG, GIF or WEBP (max. 5MB)</span>
+                <span className="block text-xs mt-1">
+                  JPEG, PNG, GIF or WEBP (max. 5MB)
+                </span>
               </p>
             </>
           )}
@@ -157,5 +167,5 @@ export default function ImageUploader({ image, onImageChange, error }: ImageUplo
         </p>
       )}
     </div>
-  )
+  );
 }

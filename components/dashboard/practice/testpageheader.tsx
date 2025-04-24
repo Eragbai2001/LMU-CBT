@@ -11,28 +11,28 @@ interface TestHeaderProps {
   onReturnHome: () => void;
 }
 
-export default function TestHeader({ 
-  title, 
-  year, 
-  timeRemaining, 
-  isTimeWarning, 
-  onReturnHome 
+export default function TestHeader({
+  title,
+  year,
+  timeRemaining,
+  isTimeWarning,
+  onReturnHome,
 }: TestHeaderProps) {
-const formatTime = (seconds: number): string => {
+  const formatTime = (seconds: number): string => {
     const minutes: number = Math.floor(seconds / 60);
     const remainingSeconds: number = seconds % 60;
     return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
-        .toString()
-        .padStart(2, "0")}`;
-};
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   return (
     <header className="px-4 py-3 sticky top-0 z-10">
       <div className="max-w-6xl mx-auto flex justify-between items-center bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center">
+        <div className="flex items-center ">
           <button
             onClick={onReturnHome}
-            className="mr-4 p-1 rounded-full hover:bg-gray-100 transition-colors"
+            className="mr-4 p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <ArrowLeft size={20} />
           </button>

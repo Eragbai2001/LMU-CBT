@@ -1,30 +1,38 @@
-"use client"
+"use client";
 
-import { Trash2, AlertCircle } from "lucide-react"
+import { Trash2, AlertCircle } from "lucide-react";
 
 interface Question {
-  id: number
-  text: string
-  points: number
-  options: { id: string; text: string }[]
-  correctAnswer: string
-  image?: string
-  topic?: string
-  solution?: string
+  id: number;
+  text: string;
+  points: number;
+  options: { id: string; text: string }[];
+  correctAnswer: string;
+  image?: string;
+  topic?: string;
+  solution?: string;
 }
 
 interface QuestionListProps {
-  questions: Question[]
-  error?: string
-  onRemoveQuestion: (id: number) => void
-  onBack: () => void
-  onNext: () => void
+  questions: Question[];
+  error?: string;
+  onRemoveQuestion: (id: number) => void;
+  onBack: () => void;
+  onNext: () => void;
 }
 
-export default function QuestionList({ questions, error, onRemoveQuestion, onBack, onNext }: QuestionListProps) {
+export default function QuestionList({
+  questions,
+  error,
+  onRemoveQuestion,
+  onBack,
+  onNext,
+}: QuestionListProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-6">Added Questions ({questions.length})</h2>
+      <h2 className="text-xl font-semibold mb-6">
+        Added Questions ({questions.length})
+      </h2>
 
       {questions.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
@@ -33,7 +41,14 @@ export default function QuestionList({ questions, error, onRemoveQuestion, onBac
       ) : (
         <div className="space-y-4">
           {questions.map((question, index) => (
-            <div key={question.id} className="border border-gray-200 rounded-lg p-4">
+            <div
+              key={
+                typeof question.id === "string"
+                  ? question.id
+                  : `question-${index}`
+              }
+              className="border border-gray-200 rounded-lg p-4"
+            >
               <div className="flex justify-between items-start">
                 <div className="flex items-center">
                   <span className="w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center font-medium mr-3">
@@ -42,7 +57,8 @@ export default function QuestionList({ questions, error, onRemoveQuestion, onBac
                   <div>
                     <p className="font-medium">{question.text}</p>
                     <p className="text-sm text-gray-500 mt-1">
-                      {question.points} points • {question.options.length} options
+                      {question.points} points • {question.options.length}{" "}
+                      options
                       {question.image && " • Has image"}
                       {question.topic && ` • Topic: ${question.topic}`}
                       {question.solution && " • Has solution"}
@@ -83,5 +99,5 @@ export default function QuestionList({ questions, error, onRemoveQuestion, onBac
         </button>
       </div>
     </div>
-  )
+  );
 }

@@ -1,8 +1,18 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Clock, FileText, ArrowRight, ChevronRight } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import {
+  Clock,
+  FileText,
+  ArrowRight,
+  ChevronRight,
+  Edit,
+  Trash2,
+} from "lucide-react";
 import { Sigma, FlaskConical, BookOpen, Brain } from "lucide-react";
 import TestPopupModal from "./TestPopupModal";
+// Import the modal
+import { useRouter } from "next/navigation";
+import ConfirmationModal from "./ConfirmationModal";
 
 interface Test {
   id: string | number;
@@ -28,6 +38,50 @@ export default function PracticeTests() {
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Modal state
+  const [testToDelete, setTestToDelete] = useState<Test | null>(null); // Test to delete
+  const router = useRouter();
+
+  const handleEdit = useCallback(
+    (testId: string | number) => {
+      const testToEdit = tests.find((t) => t.id === testId);
+      if (!testToEdit) return;
+
+      localStorage.setItem(`edit-test-${testId}`, JSON.stringify(testToEdit));
+      router.push(`/edit-test/${testId}`);
+    },
+    [tests, router]
+  );
+
+  const handleDeleteClick = (testId: string | number) => {
+    const testToDelete = tests.find((t) => t.id === testId) || null;
+    setTestToDelete(testToDelete);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!testToDelete) return;
+
+    try {
+      const res = await fetch(`/api/delete/${testToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setTests((prev) => prev.filter((t) => t.id !== testToDelete.id));
+        setIsDeleteModalOpen(false);
+        setTestToDelete(null);
+      } else {
+        console.error("Failed to delete test");
+      }
+    } catch (err) {
+      console.error("Error deleting test:", err);
+    }
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setTestToDelete(null);
+  };
 
   useEffect(() => {
     fetch("/api/auth/practice-tests")
@@ -71,17 +125,32 @@ export default function PracticeTests() {
         {displayedTests.map((test) => (
           <div
             key={test.id}
-            className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer"
+            className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer group"
           >
             <div className="flex justify-between items-start mb-4">
               <div className="w-12 h-12 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full">
                 {iconMap[test.icon] || test.icon}
               </div>
-              {test.isPopular && (
-                <span className="bg-blue-100 text-blue-700 px-3 py-1 text-xs font-medium rounded-full">
-                  Popular
-                </span>
-              )}
+              <div className="relative ">
+                <div
+                  className={`absolute top-2 right-2 flex space-x-1 transition-opacity duration-200 opacity-0 group-hover:opacity-100`}
+                >
+                  <button
+                    onClick={() => handleEdit(test.id)}
+                    className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-blue-500 transition-colors cursor-pointer"
+                    aria-label="Edit test"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(test.id)}
+                    className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-red-500 transition-colors cursor-pointer"
+                    aria-label="Delete test"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
             </div>
 
             <h3 className="font-bold text-lg mb-2 text-gray-800">
@@ -134,6 +203,21 @@ export default function PracticeTests() {
           onClose={() => setSelectedTest(null)}
         />
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        title="Delete Test"
+        message={
+          testToDelete
+            ? `Are you sure you want to delete "${testToDelete.title}"? This action cannot be undone.`
+            : ""
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={() => testToDelete && confirmDelete()}
+        onCancel={cancelDelete}
+      />
     </div>
   );
 }

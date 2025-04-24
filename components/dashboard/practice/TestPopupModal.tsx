@@ -1,6 +1,8 @@
+// components/TestPopupModal.tsx
+
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -9,48 +11,54 @@ interface Test {
   id: string | number;
   title: string;
   description: string;
-  duration: number; // Added duration for default time
+  duration: number;
   durationOptions: { id: string; minutes: number }[];
   yearOptions: { id: string; value: number }[];
-  // Add displayDuration as a prop
+  topicsByYear?: { yearId: string; topics: string[] }[];
 }
+
 interface TestPopupModalProps {
   test: Test;
   onClose: () => void;
 }
 
-export default function TestPopupModal({
-  test,
-  onClose,
-}: // Destructure displayDuration
-TestPopupModalProps) {
+export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
   const router = useRouter();
   const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const handleStartTest = async () => {
-    if (selectedDuration && selectedYear) {
-      setLoading(true);
-      try {
-        let durationId = selectedDuration;
+  const availableTopics = useMemo(() => {
+    return (
+      test.topicsByYear?.find((y) => y.yearId === selectedYear)?.topics || []
+    );
+  }, [selectedYear, test.topicsByYear]);
 
-        // Handle "default" and "no-time" options
-        if (selectedDuration === "default") {
-          durationId = "default"; // Use a special identifier for default time
-        } else if (selectedDuration === "no-time") {
-          durationId = "no-time"; // Use a special identifier for no time
-        }
+  const handleTopicToggle = (topic: string) => {
+    setSelectedTopics((prev) =>
+      prev.includes(topic) ? prev.filter((t) => t !== topic) : [...prev, topic]
+    );
+  };
 
-        // Navigate to the test page with query parameters
-        router.push(
-          `/dashboard/test?testId=${test.id}&durationId=${durationId}&yearId=${selectedYear}`
-        );
-      } catch (error) {
-        console.error("Error starting test:", error);
-        setLoading(false);
-      }
-    }
+  const handleStartTest = () => {
+    if (!selectedYear || !selectedDuration) return;
+
+    setLoading(true);
+
+    const topicQuery = selectedTopics
+      .map((t) => `topic=${encodeURIComponent(t)}`)
+      .join("&");
+    const durationQuery =
+      selectedDuration === "no-time" ? "no-time" : selectedDuration;
+
+    router.push(
+      `/dashboard/test?testId=${
+        test.id
+      }&durationId=${durationQuery}&yearId=${selectedYear}${
+        topicQuery ? `&${topicQuery}` : ""
+      }`
+    );
   };
 
   return (
@@ -59,18 +67,14 @@ TestPopupModalProps) {
         className="relative flex w-full max-w-3xl overflow-hidden rounded-xl bg-white shadow-xl animate-in fade-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Left side - Accent panel */}
+        {/* Left Side */}
         <div className="hidden md:block w-1/3 bg-gradient-to-b from-blue-600 to-indigo-700 p-8 text-white">
           <div className="h-full flex flex-col">
             <h2 className="text-xl font-bold border-b border-blue-400 pb-2 mb-4">
               START NEW TEST
             </h2>
             <div className="text-5xl font-bold mt-auto mb-2">
-              Boost
-              <br />
-              Your
-              <br />
-              Skills
+              Boost Your Skills
             </div>
             <p className="text-blue-100 mb-4">
               Challenge yourself with our practice tests
@@ -78,7 +82,7 @@ TestPopupModalProps) {
           </div>
         </div>
 
-        {/* Right side - Form */}
+        {/* Right Side */}
         <div className="w-full md:w-2/3 p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-800">
@@ -86,14 +90,14 @@ TestPopupModalProps) {
             </h2>
             <button
               onClick={onClose}
-              className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+              className="p-1 rounded-full hover:bg-gray-100"
             >
               <X className="h-5 w-5 text-gray-500" />
             </button>
           </div>
 
           <div className="space-y-6">
-            {/* Subject Display */}
+            {/* Subject */}
             <div>
               <h3 className="text-sm font-medium text-gray-600 mb-3">
                 Subject
@@ -103,60 +107,93 @@ TestPopupModalProps) {
               </div>
             </div>
 
-            {/* Duration Selection */}
+            {/* Duration */}
             <div>
               <h3 className="text-sm font-medium text-gray-600 mb-3">
                 Select Duration
               </h3>
               <div className="grid grid-cols-2 gap-2">
-                {/* Other Duration Options */}
-                {test.durationOptions.length > 0 ? (
-                  test.durationOptions.map((d) => (
-                    <button
-                      key={d.id}
-                      className={cn(
-                        "py-2 px-4 rounded-full text-sm font-medium transition-colors",
-                        selectedDuration === d.id
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                      )}
-                      onClick={() => setSelectedDuration(d.id)}
-                    >
-                      {d.minutes} mins
-                    </button>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No duration options available</p>
-                )}
+                {/* No Timer Option */}
+                <button
+                  className={cn(
+                    "py-2 px-4 rounded-full text-sm font-medium transition-colors",
+                    selectedDuration === "no-time"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  )}
+                  onClick={() => setSelectedDuration("no-time")}
+                >
+                  No Time
+                </button>
+
+                {/* Actual Duration Options */}
+                {test.durationOptions.map((d) => (
+                  <button
+                    key={d.id}
+                    className={cn(
+                      "py-2 px-4 rounded-full text-sm font-medium transition-colors",
+                      selectedDuration === d.id
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    )}
+                    onClick={() => setSelectedDuration(d.id)}
+                  >
+                    {d.minutes} mins
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Year Selection */}
+            {/* Year */}
             <div>
               <h3 className="text-sm font-medium text-gray-600 mb-3">
                 Select Year
               </h3>
               <div className="grid grid-cols-3 gap-2">
-                {test.yearOptions.length > 0 ? (
-                  test.yearOptions.map((y) => (
+                {test.yearOptions.map((y) => (
+                  <button
+                    key={y.id}
+                    className={cn(
+                      "py-2 px-4 rounded-full text-sm font-medium transition-colors",
+                      selectedYear === y.id
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    )}
+                    onClick={() => {
+                      setSelectedYear(y.id);
+                      setSelectedTopics([]); // reset selected topics
+                    }}
+                  >
+                    {y.value}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Topics */}
+            {availableTopics.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-600 mb-3">
+                  Choose Topics (optional)
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {availableTopics.map((topic) => (
                     <button
-                      key={y.id}
+                      key={topic}
                       className={cn(
                         "py-2 px-4 rounded-full text-sm font-medium transition-colors",
-                        selectedYear === y.id
+                        selectedTopics.includes(topic)
                           ? "bg-blue-600 text-white"
                           : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                       )}
-                      onClick={() => setSelectedYear(y.id)}
+                      onClick={() => handleTopicToggle(topic)}
                     >
-                      {y.value}
+                      {topic}
                     </button>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No year options available</p>
-                )}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Start Button */}
             <button

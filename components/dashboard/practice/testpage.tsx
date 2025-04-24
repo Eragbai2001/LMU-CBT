@@ -14,6 +14,8 @@ interface Question {
   id: string;
   content: string;
   options: string[];
+  image: string;
+  points: number;
 }
 
 interface TestData {
@@ -24,7 +26,8 @@ interface TestData {
     questionCount: number;
     duration: number;
     year: number;
-    
+    image: string;
+    points: number;
   };
   questions: Question[];
   sessionId: string;
@@ -217,7 +220,7 @@ export default function TestPage() {
         year={testData.test.year}
         timeRemaining={timeRemaining}
         isTimeWarning={isTimeWarning}
-        onReturnHome={() => router.push("/")}
+        onReturnHome={() => router.push("/dashboard/practice")}
       />
 
       <main className="max-w-6xl mx-auto px-4 py-6">
@@ -254,7 +257,7 @@ export default function TestPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:w-80 bg-white rounded-lg shadow-sm p-6 cursor-pointer">
+          <div className="lg:w-80 bg-white rounded-lg shadow-sm p-6 ">
             {/* Timer */}
             <div className="mb-6 text-center">
               <div

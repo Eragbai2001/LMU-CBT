@@ -18,7 +18,15 @@ export async function GET(request: NextRequest) {
     const test = await prisma.practiceTest.findUnique({
       where: { id: testId },
       include: {
-        questions: true,
+        questions: {
+          select: {
+            id: true,
+            content: true,
+            options: true,
+            image: true,
+            points: true, // <- Add this
+          },
+        },
       },
     });
 
@@ -44,14 +52,25 @@ export async function GET(request: NextRequest) {
 
     // Create a practice session if all parameters are provided
     let session = null;
-    if (durationId && yearId) {
+
+    if (yearId && (durationId || durationId === "no-time")) {
+      const sessionData: {
+        userId: string;
+        testId: string;
+        yearId: string;
+        durationId?: string;
+      } = {
+        userId: "anonymous",
+        testId,
+        yearId,
+      };
+
+      if (durationId !== "no-time") {
+        sessionData.durationId = durationId;
+      }
+
       session = await prisma.practiceSession.create({
-        data: {
-          userId: "anonymous", // You can replace this with actual user ID if available
-          testId,
-          durationId,
-          yearId,
-        },
+        data: sessionData,
       });
     }
 
@@ -61,7 +80,7 @@ export async function GET(request: NextRequest) {
         id: test.id,
         title: test.title,
         description: test.description,
-        question:test.questions,
+        question: test.questions,
         questionCount: test.questionCount,
         duration: duration ? duration.minutes : null,
         year: year ? year.value : null,
@@ -70,6 +89,8 @@ export async function GET(request: NextRequest) {
         id: q.id,
         content: q.content,
         options: q.options,
+        image: q.image,
+        points: q.points,
         // Do not include correct answer in the response to prevent cheating
       })),
       sessionId: session?.id,

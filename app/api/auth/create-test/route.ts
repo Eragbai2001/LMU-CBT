@@ -61,6 +61,9 @@ export async function POST(req: Request) {
       correctAnswer: string;
       solution?: string;
       topic?: string;
+      image?: string;
+
+      points?: number;
     };
 
     const questionPayload = questions.map((q: Question) => ({
@@ -70,6 +73,8 @@ export async function POST(req: Request) {
       correctAnswer: q.correctAnswer,
       solution: q.solution || "No solution yet",
       topic: q.topic || "General",
+      image: q.image || null,
+      points: q.points || 0,
       testId: test.id,
     }));
 

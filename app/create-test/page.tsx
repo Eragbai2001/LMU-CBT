@@ -2,8 +2,8 @@
 
 import type React from "react";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import ProgressSteps from "@/components/admin/progress-steps";
@@ -18,8 +18,7 @@ interface Option {
   text: string;
 }
 
-// Update the Question interface to include topic and solution
-interface Question {
+export interface Question {
   id: number;
   text: string;
   points: number;
@@ -30,7 +29,6 @@ interface Question {
   solution?: string;
 }
 
-// Update the TestData interface to include year
 export interface TestData {
   title: string;
   description: string;
@@ -41,9 +39,9 @@ export interface TestData {
   questions: Question[];
   isPopular: boolean;
   questionCount: number;
+  points: number;
 }
 
-// Available icons for tests
 const availableIcons = [
   { id: "sigma", name: "Mathematics" },
   { id: "flask-conical", name: "Science" },
@@ -55,26 +53,34 @@ const availableIcons = [
   { id: "palette", name: "Art & Design" },
 ];
 
-export default function CreateTestPage() {
+export default function CreateTestPage({ initialData }: { initialData?: TestData }) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  // Update the initial state to include year
-  const [testData, setTestData] = useState<TestData>({
-    title: "",
-    description: "",
-    icon: "sigma",
-    totalQuestions: 30,
-    duration: 60,
-    year: new Date().getFullYear(),
-    questions: [],
-    isPopular: false,
-    questionCount: 0,
-  });
-  // Update the initial state for currentQuestion to include empty topic and solution
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("id");
+  const [loading, setLoading] = useState(true);
+  const [globalError, setGlobalError] = useState<string | null>(null);
+
+  const [testData, setTestData] = useState<TestData>(
+    initialData || {
+      title: "",
+      description: "",
+      icon: "sigma",
+      totalQuestions: 30,
+      duration: 60,
+      year: new Date().getFullYear(),
+      questions: [],
+      isPopular: false,
+      questionCount: 0,
+      points: 0,
+    }
+  );
+
   const [currentQuestion, setCurrentQuestion] = useState<Question>({
     id: 1,
     text: "",
     points: 3,
+    image: "",
     options: [
       { id: "A", text: "" },
       { id: "B", text: "" },
@@ -85,14 +91,55 @@ export default function CreateTestPage() {
     topic: "",
     solution: "",
   });
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Handle basic test info changes
-   const handleTestInfoChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  useEffect(() => {
+    if (initialData) {
+      setTestData(initialData);
+    }
+    setLoading(false);
+  }, [initialData]);
+
+  useEffect(() => {
+    if (!editId) return;
+
+    const key = `edit-test-${editId}`;
+    const savedData = localStorage.getItem(key);
+
+    if (!savedData) return;
+
+    try {
+      const data = JSON.parse(savedData);
+
+      if (data && typeof data === "object") {
+        setTestData({
+          title: data.title ?? "",
+          description: data.description ?? "",
+          icon: data.icon ?? "sigma",
+          totalQuestions: Number(data.totalQuestions) || 0,
+          duration: Number(data.duration) || 0,
+          year: Number(data.year) || new Date().getFullYear(),
+          isPopular: data.isPopular ?? false,
+          questionCount: Number(data.questionCount) || 0,
+          questions: Array.isArray(data.questions) ? data.questions : [],
+          points: Number(data.points) || 0,
+        });
+      } else {
+        console.error("Invalid data structure in localStorage");
+      }
+    } catch (error) {
+      console.error("Failed to parse saved test:", error);
+    }
+  }, [editId]);
+
+  const handleTestInfoChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
-  
+
     setTestData({
       ...testData,
       [name]:
@@ -100,14 +147,13 @@ export default function CreateTestPage() {
         name === "duration" ||
         name === "year" ||
         name === "questionCount"
-          ? value === "" // Check if the input is empty
-            ? "" // Set to an empty string if empty
-            : Number(value) // Otherwise, convert to a number
+          ? value === ""
+            ? ""
+            : Number(value)
           : value,
     });
   };
 
-  // Toggle popular status
   const togglePopular = () => {
     setTestData({
       ...testData,
@@ -115,7 +161,6 @@ export default function CreateTestPage() {
     });
   };
 
-  // Handle question text change
   const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCurrentQuestion({
       ...currentQuestion,
@@ -123,15 +168,15 @@ export default function CreateTestPage() {
     });
   };
 
-  // Handle question points change
   const handlePointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
     setCurrentQuestion({
       ...currentQuestion,
-      points: Number.parseInt(e.target.value),
+      points: value === "" ? 0 : Number(value),
     });
   };
 
-  // Handle option text change
   const handleOptionChange = (id: string, text: string) => {
     setCurrentQuestion({
       ...currentQuestion,
@@ -141,7 +186,6 @@ export default function CreateTestPage() {
     });
   };
 
-  // Handle correct answer change
   const handleCorrectAnswerChange = (id: string) => {
     setCurrentQuestion({
       ...currentQuestion,
@@ -149,16 +193,13 @@ export default function CreateTestPage() {
     });
   };
 
-  // Handle image change
   const handleImageChange = (imageUrl?: string) => {
-    setCurrentQuestion({
-      ...currentQuestion,
+    setCurrentQuestion((prev) => ({
+      ...prev,
       image: imageUrl,
-    });
+    }));
   };
 
-  // Add handlers for topic and solution changes
-  // Handle topic change
   const handleTopicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCurrentQuestion({
       ...currentQuestion,
@@ -166,7 +207,6 @@ export default function CreateTestPage() {
     });
   };
 
-  // Handle solution change
   const handleSolutionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCurrentQuestion({
       ...currentQuestion,
@@ -174,9 +214,7 @@ export default function CreateTestPage() {
     });
   };
 
-  // Add current question to test data
   const addQuestion = () => {
-    // Validate question
     const newErrors: Record<string, string> = {};
 
     if (!currentQuestion.text.trim()) {
@@ -199,23 +237,29 @@ export default function CreateTestPage() {
       return;
     }
 
-    // Clear any existing errors
     setErrors({});
 
-    // Add question to test data
-    const updatedQuestions = [...testData.questions, { ...currentQuestion }];
+    const newId = testData.questions.length
+      ? Math.max(...testData.questions.map((q) => q.id)) + 1
+      : 1;
+
+    const updatedQuestions = [
+      ...testData.questions,
+      { ...currentQuestion, id: newId },
+    ];
+    const totalPoints = updatedQuestions.reduce((sum, q) => sum + q.points, 0);
+
     setTestData({
       ...testData,
       questions: updatedQuestions,
-      // Don't override totalQuestions here
+      points: totalPoints,
     });
 
-    // Update the reset current question to include empty topic and solution
-    // Reset current question for next entry
     setCurrentQuestion({
-      id: currentQuestion.id + 1,
+      id: newId + 1,
       text: "",
       points: 3,
+      image: "",
       options: [
         { id: "A", text: "" },
         { id: "B", text: "" },
@@ -228,16 +272,16 @@ export default function CreateTestPage() {
     });
   };
 
-  // Remove a question from test data
   const removeQuestion = (id: number) => {
-    const updatedQuestions = testData.questions.filter((q) => q.id !== id);
-    setTestData({
-      ...testData,
-      questions: updatedQuestions,
-    });
+    if (window.confirm("Are you sure you want to delete this question?")) {
+      const updatedQuestions = testData.questions.filter((q) => q.id !== id);
+      setTestData({
+        ...testData,
+        questions: updatedQuestions,
+      });
+    }
   };
 
-  // Save the test
   const saveTest = async () => {
     const errors: Record<string, string> = {};
 
@@ -253,8 +297,12 @@ export default function CreateTestPage() {
     }
 
     try {
-      const res = await fetch("/api/auth/create-test", {
-        method: "POST",
+      const endpoint = editId
+        ? `/api/auth/edit-test/${editId}`
+        : "/api/auth/create-test";
+
+      const res = await fetch(endpoint, {
+        method: editId ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -265,6 +313,7 @@ export default function CreateTestPage() {
 
       if (!res.ok) {
         console.error("Failed to save test:", data.error);
+        setGlobalError(data.error || "Failed to save test");
         return;
       }
 
@@ -272,10 +321,10 @@ export default function CreateTestPage() {
       router.push("/dashboard/practice");
     } catch (error) {
       console.error("Error saving test:", error);
+      setGlobalError("An unexpected error occurred. Please try again.");
     }
   };
 
-  // Go back to previous page
   const goBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
@@ -284,9 +333,7 @@ export default function CreateTestPage() {
     }
   };
 
-  // Go to next step
   const goToNextStep = () => {
-    // Validate current step
     const newErrors: Record<string, string> = {};
 
     if (currentStep === 1) {
@@ -301,10 +348,6 @@ export default function CreateTestPage() {
       if (!testData.year || testData.year < 2000) {
         newErrors.year = "Valid year is required";
       }
-
-      if (!testData.totalQuestions || testData.totalQuestions < 1) {
-        newErrors.totalQuestions = "Number of questions is required";
-      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -316,7 +359,6 @@ export default function CreateTestPage() {
     setCurrentStep(currentStep + 1);
   };
 
-  // Define steps for the progress indicator
   const steps = [
     {
       number: 1,
@@ -327,8 +369,17 @@ export default function CreateTestPage() {
     { number: 3, title: "Review", description: "Finalize and save" },
   ];
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      {globalError && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+          {globalError}
+        </div>
+      )}
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center mb-8">
           <button
@@ -338,14 +389,12 @@ export default function CreateTestPage() {
             <ArrowLeft className="h-5 w-5 text-gray-600" />
           </button>
           <h1 className="text-2xl font-bold text-gray-800">
-            Create New Practice Test
+            {editId ? "Edit Practice Test" : "Create New Practice Test"}
           </h1>
         </div>
 
-        {/* Progress Steps */}
         <ProgressSteps currentStep={currentStep} steps={steps} />
 
-        {/* Step 1: Test Information */}
         {currentStep === 1 && (
           <TestInformationForm
             testData={testData}
@@ -357,10 +406,8 @@ export default function CreateTestPage() {
           />
         )}
 
-        {/* Step 2: Questions */}
         {currentStep === 2 && (
           <div>
-            {/* Question Editor */}
             <QuestionEditor
               question={currentQuestion}
               errors={errors}
@@ -374,7 +421,6 @@ export default function CreateTestPage() {
               onAddQuestion={addQuestion}
             />
 
-            {/* Added Questions List */}
             <QuestionList
               questions={testData.questions}
               error={errors.questions}
@@ -385,7 +431,6 @@ export default function CreateTestPage() {
           </div>
         )}
 
-        {/* Step 3: Review */}
         {currentStep === 3 && (
           <TestReview
             testData={testData}

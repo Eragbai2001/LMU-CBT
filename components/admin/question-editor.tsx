@@ -89,7 +89,7 @@ export default function QuestionEditor({
             <input
               type="number"
               id="points"
-              value={question.points}
+              value={question.points || ""} // Allow empty string as a fallback
               onChange={onPointsChange}
               min={1}
               max={10}

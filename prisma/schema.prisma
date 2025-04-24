@@ -30,8 +30,8 @@ model PracticeTest {
   duration       Int?
   durationOptions Duration[]       @relation("TestDurations")
   yearOptions    Year[]            @relation("TestYears")
-  sessions       PracticeSession[]
-  questions      Question[]
+  sessions       PracticeSession[] // Removed onDelete: Cascade
+  questions      Question[]        // Removed onDelete: Cascade
 }
 
 model Duration {
@@ -52,13 +52,13 @@ model PracticeSession {
   id           String       @id @default(cuid())
   userId       String
   testId       String
-  durationId   String
+  durationId   String?
   yearId       String
   startedAt    DateTime     @default(now())
 
-  test         PracticeTest @relation(fields: [testId], references: [id])
-  duration     Duration     @relation(fields: [durationId], references: [id])
-  year         Year         @relation(fields: [yearId], references: [id])
+  test         PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  duration     Duration?     @relation(fields: [durationId], references: [id])
+  year         Year         @relation(fields: [yearId], references: [id], onDelete: Cascade) // Add onDelete: Cascade here
 }
 
 
@@ -67,10 +67,12 @@ model Question {
   content        String
   options        String[]
   correctAnswer  String
-  solution       String?       // ✅ Optional with ?
-  topic          String?       // ✅ Optional with ?
-  test           PracticeTest @relation(fields: [testId], references: [id])
+  solution       String?
+  topic          String?
+  test           PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade) // Moved onDelete: Cascade here
   testId         String
+  image          String?
+  points         Int?
 }
 
 

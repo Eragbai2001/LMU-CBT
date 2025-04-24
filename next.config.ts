@@ -1,5 +1,6 @@
 module.exports = {
   images: {
+   
     remotePatterns: [
       {
         protocol: "https",
@@ -10,8 +11,8 @@ module.exports = {
       },
       {
         protocol: "https",
-        hostname: "your-new-domain.com",
-        pathname: "/images/**",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
       },
       {
         protocol: "https",

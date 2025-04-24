@@ -1,11 +1,14 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface QuestionContentProps {
   currentQuestion: {
     id: string;
     content: string;
     options: string[];
+    image: string;
+    points: number;
   };
   currentQuestionIndex: number;
   totalQuestions: number;
@@ -18,7 +21,7 @@ export default function QuestionContent({
   currentQuestionIndex,
   totalQuestions,
   userAnswers,
-  onAnswerSelect
+  onAnswerSelect,
 }: QuestionContentProps) {
   const alphabet = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
@@ -27,15 +30,27 @@ export default function QuestionContent({
       <div className="flex justify-between items-center mb-3">
         <div className="inline-flex items-center bg-gray-100 px-3 py-1 rounded-full">
           Question{" "}
-          <span className="mx-1 font-medium">
-            {currentQuestionIndex + 1}
-          </span>{" "}
+          <span className="mx-1 font-medium">{currentQuestionIndex + 1}</span>{" "}
           of {totalQuestions}
         </div>
         <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-          3 points
+          {currentQuestion.points}{" "}
+          {currentQuestion.points === 1 ? "point" : "points"}
         </div>
       </div>
+
+      {/* Display the image if it exists */}
+      {currentQuestion.image && (
+        <div className="mb-6">
+          <Image
+            src={currentQuestion.image}
+            alt={`Question ${currentQuestionIndex + 1}`}
+            className="w-full h-auto rounded-lg shadow-sm"
+            width={100} // Adjust width as needed
+            height={100} // Adjust height as needed
+          />
+        </div>
+      )}
 
       <h2 className="text-lg font-medium text-gray-800 mb-6 leading-relaxed">
         {currentQuestion.content}
