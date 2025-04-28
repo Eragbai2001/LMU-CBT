@@ -15,11 +15,12 @@ interface Question {
   options: Option[];
   correctAnswer: string;
   solution: string; // ✅ New field
-  topic: string;    // ✅ New field
+  topic: string; // ✅ New field
   image?: string;
 }
 
 interface TestData {
+  id?: string; // Optional ID field
   title: string;
   description: string;
   icon: string;
@@ -38,63 +39,110 @@ interface SaveTestProps {
 export default function SaveTest({ testData, setErrors }: SaveTestProps) {
   const router = useRouter();
 
-  const saveTest = async () => {
+   const saveTest = async () => {
     const newErrors: Record<string, string> = {};
-
+  
     // Validate test data
     if (!testData.title.trim()) newErrors.title = "Test title is required";
-    if (!testData.description.trim()) newErrors.description = "Test description is required";
-    if (testData.questions.length === 0) newErrors.questions = "At least one question is required";
-
+    if (!testData.description.trim())
+      newErrors.description = "Test description is required";
+    if (testData.questions.length === 0)
+      newErrors.questions = "At least one question is required";
+  
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-
+  
     try {
-      // 1. Insert practice test
-      const { data: test, error: testError } = await supabase
-        .from("practiceTest")
-        .insert({
-          id: uuidv4(),
-          title: testData.title,
-          description: testData.description,
-          icon: testData.icon,
-          isPopular: testData.isPopular,
-          questionCount: testData.totalQuestions,
-          duration: testData.duration,
-          year: testData.year,
-        })
-        .select()
-        .single();
-
-      if (testError || !test) {
-        console.error("Failed to create test:", testError);
-        return;
+      let test;
+  
+      if (testData.id) {
+        // Update existing test
+        const { data: updatedTest, error: updateError } = await supabase
+          .from("practiceTest")
+          .update({
+            title: testData.title,
+            description: testData.description,
+            icon: testData.icon,
+            isPopular: testData.isPopular,
+            questionCount: testData.totalQuestions,
+            duration: testData.duration,
+            year: testData.year,
+          })
+          .eq("id", testData.id)
+          .select()
+          .single();
+  
+        if (updateError || !updatedTest) {
+          console.error("Failed to update test:", updateError);
+          return;
+        }
+  
+        test = updatedTest;
+      } else {
+        // Insert new test
+        const { data: newTest, error: insertError } = await supabase
+          .from("practiceTest")
+          .insert({
+            id: uuidv4(),
+            title: testData.title,
+            description: testData.description,
+            icon: testData.icon,
+            isPopular: testData.isPopular,
+            questionCount: testData.totalQuestions,
+            duration: testData.duration,
+            year: testData.year,
+          })
+          .select()
+          .single();
+  
+        if (insertError || !newTest) {
+          console.error("Failed to create test:", insertError);
+          return;
+        }
+  
+        test = newTest;
       }
-
-      // 2. Insert questions
+  
+      // 2. Insert or update questions
       const questionPayload = testData.questions.map((q) => ({
-        id: uuidv4(),
+        id: q.id || uuidv4(), // Use existing ID if available, otherwise generate a new one
         text: q.text,
         points: q.points,
         options: q.options.map((o) => o.text),
         correctAnswer: q.correctAnswer,
-        solution: q.solution, // ✅ Include solution
-        topic: q.topic,       // ✅ Include topic
+        solution: q.solution,
+        topic: q.topic,
         image: q.image || null,
         testId: test.id,
       }));
-
-      const { error: questionError } = await supabase.from("question").insert(questionPayload);
-
+  
+      // Delete existing questions for the test (if updating)
+      if (testData.id) {
+        const { error: deleteError } = await supabase
+          .from("question")
+          .delete()
+          .eq("testId", testData.id);
+  
+        if (deleteError) {
+          console.error("Failed to delete existing questions:", deleteError);
+          return;
+        }
+      }
+  
+      // Insert new questions
+      const { error: questionError } = await supabase
+        .from("question")
+        .insert(questionPayload);
+  
       if (questionError) {
         console.error("Failed to insert questions:", questionError);
         return;
       }
-
+  
       console.log("Test and questions saved successfully.");
-      router.push("/practice-tests");
+      router.push("/dashboard/practice-tests");
     } catch (error) {
       console.error("Unexpected error saving test:", error);
     }

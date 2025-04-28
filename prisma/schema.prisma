@@ -10,6 +10,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+enum Role {
+  ADMIN
+  USER
+}
+
 model User {
   id                String    @id @default(uuid())
   name              String
@@ -18,6 +24,7 @@ model User {
   resetToken        String?   @unique
   resetTokenExpiry  DateTime?
   createdAt         DateTime  @default(now())
+  role              Role      @default(USER) // Add role field with default value
 }
 
 model PracticeTest {

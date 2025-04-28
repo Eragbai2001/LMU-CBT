@@ -10,7 +10,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "create-admin": "ts-node --esm scripts/create-admin.ts"
   },
   "dependencies": {
     "@next/font": "^14.2.15",

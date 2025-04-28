@@ -1,4 +1,4 @@
-import { getTestById } from "@/app/api/edit-test/[id]/action";
+import { getTestById } from "@/app/api/edit-test/[id]/route";
 import CreateTestPage, { TestData, Question } from "@/app/create-test/page";
 
 export default async function EditTestPage({
@@ -44,9 +44,10 @@ export default async function EditTestPage({
         solution: q.solution || "No solution yet",
       };
     }
-  );    
+  );
   // Transform the test object to match the TestData type
   const transformedTest: TestData = {
+    id: params.id,
     title: test.title || "",
     description: test.description || "",
     icon: test.icon || "sigma",

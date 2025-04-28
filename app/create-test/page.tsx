@@ -11,6 +11,7 @@ import TestInformationForm from "@/components/admin/test-information-form";
 import QuestionEditor from "@/components/admin/question-editor";
 import QuestionList from "@/components/admin/question-list";
 import TestReview from "@/components/admin/test-review";
+import { getUser } from "@/lib/getUser";
 
 // Define types
 interface Option {
@@ -30,6 +31,7 @@ export interface Question {
 }
 
 export interface TestData {
+  id?: string;
   title: string;
   description: string;
   icon: string;
@@ -53,13 +55,18 @@ const availableIcons = [
   { id: "palette", name: "Art & Design" },
 ];
 
-export default function CreateTestPage({ initialData }: { initialData?: TestData }) {
+export default function CreateTestPage({
+  initialData,
+}: {
+  initialData?: TestData;
+}) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const searchParams = useSearchParams();
   const editId = searchParams.get("id");
   const [loading, setLoading] = useState(true);
   const [globalError, setGlobalError] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState(false); // Track authorization status
 
   const [testData, setTestData] = useState<TestData>(
     initialData || {
@@ -93,45 +100,62 @@ export default function CreateTestPage({ initialData }: { initialData?: TestData
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
 
   useEffect(() => {
+    async function checkAuthorization() {
+      const user = await getUser();
+
+      if (!user || user.role !== "ADMIN") {
+        // Redirect unauthorized users
+        router.push("/unauthorized");
+        return;
+      }
+
+      setIsAuthorized(true); // User is authorized
+    }
+
+    checkAuthorization();
+
     if (initialData) {
       setTestData(initialData);
-    }
-    setLoading(false);
-  }, [initialData]);
+      setLoading(false);
+    } else if (editId) {
+      const key = `edit-test-${editId}`;
+      const savedData = localStorage.getItem(key);
 
-  useEffect(() => {
-    if (!editId) return;
+      if (savedData) {
+        try {
+          const data = JSON.parse(savedData);
 
-    const key = `edit-test-${editId}`;
-    const savedData = localStorage.getItem(key);
-
-    if (!savedData) return;
-
-    try {
-      const data = JSON.parse(savedData);
-
-      if (data && typeof data === "object") {
-        setTestData({
-          title: data.title ?? "",
-          description: data.description ?? "",
-          icon: data.icon ?? "sigma",
-          totalQuestions: Number(data.totalQuestions) || 0,
-          duration: Number(data.duration) || 0,
-          year: Number(data.year) || new Date().getFullYear(),
-          isPopular: data.isPopular ?? false,
-          questionCount: Number(data.questionCount) || 0,
-          questions: Array.isArray(data.questions) ? data.questions : [],
-          points: Number(data.points) || 0,
-        });
-      } else {
-        console.error("Invalid data structure in localStorage");
+          if (data && typeof data === "object") {
+            setTestData({
+              title: data.title ?? "",
+              description: data.description ?? "",
+              icon: data.icon ?? "sigma",
+              totalQuestions: Number(data.totalQuestions) || 0,
+              duration: Number(data.duration) || 0,
+              year: Number(data.year) || new Date().getFullYear(),
+              isPopular: data.isPopular ?? false,
+              questionCount: Number(data.questionCount) || 0,
+              questions: Array.isArray(data.questions) ? data.questions : [],
+              points: Number(data.points) || 0,
+            });
+          } else {
+            console.error("Invalid data structure in localStorage");
+          }
+        } catch (error) {
+          console.error("Failed to parse saved test:", error);
+        }
       }
-    } catch (error) {
-      console.error("Failed to parse saved test:", error);
+    } else {
+      setLoading(false);
     }
-  }, [editId]);
+  }, [router, initialData, editId]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   const handleTestInfoChange = (
     e: React.ChangeEvent<
@@ -285,6 +309,7 @@ export default function CreateTestPage({ initialData }: { initialData?: TestData
   const saveTest = async () => {
     const errors: Record<string, string> = {};
 
+    // Validate test data
     if (!testData.title.trim()) errors.title = "Test title is required";
     if (!testData.description.trim())
       errors.description = "Test description is required";
@@ -297,16 +322,31 @@ export default function CreateTestPage({ initialData }: { initialData?: TestData
     }
 
     try {
-      const endpoint = editId
-        ? `/api/auth/edit-test/${editId}`
-        : "/api/auth/create-test";
+
+
+
+      const endpoint = testData.id
+        ? `/api/edit-test/${testData.id}` // Use the ID for updates
+        : "/api/auth/create-test"; // Create a new test if no ID exists
+
+      const method = testData.id ? "PUT" : "POST";
+      console.log(testData.id);
+
+      // Log the request payload
+      const payload = {
+        ...testData,
+        questions: testData.questions,
+      };
+      console.log("Request payload:", payload);
+
+      // Check if the payload serializes correctly
+      const jsonBody = JSON.stringify(payload);
+      console.log("JSON body length:", jsonBody.length);
 
       const res = await fetch(endpoint, {
-        method: editId ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(testData),
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -317,7 +357,8 @@ export default function CreateTestPage({ initialData }: { initialData?: TestData
         return;
       }
 
-      console.log("✅ Test saved successfully:", data.test);
+      
+      console.log("Test ID type:", typeof testData.id);
       router.push("/dashboard/practice");
     } catch (error) {
       console.error("Error saving test:", error);

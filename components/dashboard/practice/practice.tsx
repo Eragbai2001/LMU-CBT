@@ -7,12 +7,13 @@ import {
   ChevronRight,
   Edit,
   Trash2,
+  Plus,
 } from "lucide-react";
 import { Sigma, FlaskConical, BookOpen, Brain } from "lucide-react";
 import TestPopupModal from "./TestPopupModal";
-// Import the modal
-import { useRouter } from "next/navigation";
 import ConfirmationModal from "./ConfirmationModal";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react"; // Import useSession for role check
 
 interface Test {
   id: string | number;
@@ -38,16 +39,17 @@ export default function PracticeTests() {
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Modal state
-  const [testToDelete, setTestToDelete] = useState<Test | null>(null); // Test to delete
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [testToDelete, setTestToDelete] = useState<Test | null>(null);
   const router = useRouter();
+  const { data: session } = useSession(); // Get session data
+  const isAdmin = session?.user?.role === "ADMIN"; // Check if the user is an admin
 
   const handleEdit = useCallback(
     (testId: string | number) => {
       const testToEdit = tests.find((t) => t.id === testId);
       if (!testToEdit) return;
 
-      localStorage.setItem(`edit-test-${testId}`, JSON.stringify(testToEdit));
       router.push(`/edit-test/${testId}`);
     },
     [tests, router]
@@ -131,26 +133,28 @@ export default function PracticeTests() {
               <div className="w-12 h-12 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full">
                 {iconMap[test.icon] || test.icon}
               </div>
-              <div className="relative ">
-                <div
-                  className={`absolute top-2 right-2 flex space-x-1 transition-opacity duration-200 opacity-0 group-hover:opacity-100`}
-                >
-                  <button
-                    onClick={() => handleEdit(test.id)}
-                    className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-blue-500 transition-colors cursor-pointer"
-                    aria-label="Edit test"
+              {isAdmin && (
+                <div className="relative">
+                  <div
+                    className={`absolute top-2 right-2 flex space-x-1 transition-opacity duration-200 opacity-0 group-hover:opacity-100`}
                   >
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteClick(test.id)}
-                    className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-red-500 transition-colors cursor-pointer"
-                    aria-label="Delete test"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                    <button
+                      onClick={() => handleEdit(test.id)}
+                      className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-blue-500 transition-colors cursor-pointer"
+                      aria-label="Edit test"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(test.id)}
+                      className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-red-500 transition-colors cursor-pointer"
+                      aria-label="Delete test"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <h3 className="font-bold text-lg mb-2 text-gray-800">
@@ -181,19 +185,32 @@ export default function PracticeTests() {
       </div>
 
       {hasMoreTests && (
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-8 space-x-3">
           <button
             onClick={() => setShowAll(!showAll)}
-            className="flex items-center py-2 px-6 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium rounded-lg text-sm transition-colors shadow-sm"
+            className="flex items-center justify-center py-2.5 px-6 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium rounded-lg text-sm transition-all shadow-sm hover:shadow cursor-pointer group"
           >
-            {showAll ? "Show Less" : "Show More"}
+            <span>{showAll ? "Show Less" : "Show More"}</span>
             <ChevronRight
               size={16}
-              className={`ml-2 transition-transform ${
-                showAll ? "rotate-90" : ""
+              className={`ml-2 transition-transform duration-300 ${
+                showAll ? "rotate-90" : "group-hover:translate-x-0.5"
               }`}
             />
           </button>
+
+          {isAdmin && (
+            <button
+              onClick={() => router.push("/create-test")}
+              className="flex items-center justify-center py-2.5 px-6 bg-blue-600 text-white font-medium rounded-lg text-sm shadow-sm hover:bg-blue-700 transition-all hover:shadow cursor-pointer group"
+            >
+              <span>Create Test</span>
+              <Plus
+                size={16}
+                className="ml-2 transition-transform group-hover:scale-110 duration-300"
+              />
+            </button>
+          )}
         </div>
       )}
 
@@ -204,7 +221,6 @@ export default function PracticeTests() {
         />
       )}
 
-      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         title="Delete Test"
