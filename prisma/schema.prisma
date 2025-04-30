@@ -61,6 +61,7 @@ model PracticeSession {
   testId       String
   durationId   String?
   yearId       String
+   topics     String[]
   startedAt    DateTime     @default(now())
 
   test         PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade)

@@ -16,6 +16,7 @@ interface Question {
   options: string[];
   image: string;
   points: number;
+  topic: string; // Added topic field
 }
 
 interface TestData {
@@ -28,12 +29,11 @@ interface TestData {
     year: number;
     image: string;
     points: number;
+    selectedTopics: string[] | null; // Added selected topics
   };
   questions: Question[];
   sessionId: string;
 }
-
-// Skeleton loader with improved layout
 
 export default function TestPage() {
   const router = useRouter();
@@ -42,7 +42,9 @@ export default function TestPage() {
   const testId = searchParams.get("testId");
   const durationId = searchParams.get("durationId");
   const yearId = searchParams.get("yearId");
+  const selectedTopics = searchParams.getAll("topic"); // Get all selected topics
 
+  // Rest of your component stays the same
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [testData, setTestData] = useState<TestData | null>(null);
@@ -64,11 +66,10 @@ export default function TestPage() {
 
     const fetchTestData = async () => {
       try {
-        const response = await fetch(
-          `/api/auth/test-questions?testId=${testId}${
-            durationId ? `&durationId=${durationId}` : ""
-          }${yearId ? `&yearId=${yearId}` : ""}`
-        );
+        // Pass the entire URL search params to maintain all parameters
+        // including multiple topic parameters
+        const searchString = window.location.search;
+        const response = await fetch(`/api/auth/test-questions${searchString}`);
 
         if (!response.ok) {
           throw new Error("Failed to fetch test data");
@@ -94,9 +95,9 @@ export default function TestPage() {
     };
 
     fetchTestData();
-  }, [testId, durationId, yearId]);
+  }, [testId, durationId, yearId, selectedTopics]); // Include selectedTopics in dependencies
 
-  // Timer effect
+  // Timer effect and other functions remain unchanged
   useEffect(() => {
     if (!timeRemaining || timeRemaining <= 0) return;
 
@@ -221,8 +222,11 @@ export default function TestPage() {
         timeRemaining={timeRemaining}
         isTimeWarning={isTimeWarning}
         onReturnHome={() => router.push("/dashboard/practice")}
+        // Show selected topics if any
+        topics={testData.test.selectedTopics}
       />
 
+      {/* Rest of your component remains unchanged */}
       <main className="max-w-6xl mx-auto px-4 py-6">
         {/* Stats Bar */}
         <StatsBar

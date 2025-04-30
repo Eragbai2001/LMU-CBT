@@ -1,8 +1,9 @@
 "use client";
 
-import { Save, Check } from "lucide-react";
+import { Save, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { useState } from "react";
 
 interface Question {
   id: number;
@@ -38,6 +39,18 @@ export default function TestReview({
   onBack,
   onSave,
 }: TestReviewProps) {
+  const [loading, setLoading] = useState(false); // Track loading state
+
+  const handleSave = async () => {
+    setLoading(true); // Set loading state to true
+    try {
+      await onSave(); // Call the onSave function
+    } catch (error) {
+      console.error("Error saving test:", error);
+    } finally {
+      setLoading(false); // Reset loading state
+    }
+  };
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
       <h2 className="text-xl font-semibold mb-6">Review Test</h2>
@@ -194,10 +207,23 @@ export default function TestReview({
           Back
         </button>
         <button
-          onClick={onSave}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          onClick={handleSave}
+          className={`px-6 py-2 rounded-lg flex items-center justify-center transition-colors ${
+            loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+          }`}
+          disabled={loading} // Disable button while loading
         >
-          <Save className="h-4 w-4 mr-2" /> Save Test
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" /> Save Test
+            </>
+          )}
         </button>
       </div>
     </div>

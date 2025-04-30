@@ -176,7 +176,7 @@ export default function QuestionEditor({
       <div className="mt-8 flex justify-end">
         <button
           onClick={onAddQuestion}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center cursor-pointer"
         >
           <Plus className="h-4 w-4 mr-2" /> Add Question
         </button>

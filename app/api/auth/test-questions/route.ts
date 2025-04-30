@@ -9,22 +9,35 @@ export async function GET(request: NextRequest) {
   const durationId = searchParams.get("durationId");
   const yearId = searchParams.get("yearId");
 
+  // Get all selected topics (can be multiple)
+  const selectedTopics = searchParams.getAll("topic");
+
   if (!testId) {
     return NextResponse.json({ error: "Test ID is required" }, { status: 400 });
   }
 
   try {
-    // Fetch the test details
+    // Base query for test details
     const test = await prisma.practiceTest.findUnique({
       where: { id: testId },
       include: {
         questions: {
+          // If topics are selected, only include questions with those topics
+          where:
+            selectedTopics.length > 0
+              ? {
+                  topic: {
+                    in: selectedTopics,
+                  },
+                }
+              : undefined,
           select: {
             id: true,
             content: true,
             options: true,
             image: true,
-            points: true, // <- Add this
+            points: true,
+            topic: true, // Include topic in the response
           },
         },
       },
@@ -59,6 +72,7 @@ export async function GET(request: NextRequest) {
         testId: string;
         yearId: string;
         durationId?: string;
+        topics?: string[]; // Add topics to session data
       } = {
         userId: "anonymous",
         testId,
@@ -67,6 +81,11 @@ export async function GET(request: NextRequest) {
 
       if (durationId !== "no-time") {
         sessionData.durationId = durationId;
+      }
+
+      // Add selected topics to session if any
+      if (selectedTopics.length > 0) {
+        sessionData.topics = selectedTopics;
       }
 
       session = await prisma.practiceSession.create({
@@ -80,10 +99,10 @@ export async function GET(request: NextRequest) {
         id: test.id,
         title: test.title,
         description: test.description,
-        question: test.questions,
-        questionCount: test.questionCount,
+        questionCount: test.questions.length, // Use actual filtered length
         duration: duration ? duration.minutes : null,
         year: year ? year.value : null,
+        selectedTopics: selectedTopics.length > 0 ? selectedTopics : null, // Include selected topics
       },
       questions: test.questions.map((q) => ({
         id: q.id,
@@ -91,6 +110,7 @@ export async function GET(request: NextRequest) {
         options: q.options,
         image: q.image,
         points: q.points,
+        topic: q.topic, // Include topic in the response
         // Do not include correct answer in the response to prevent cheating
       })),
       sessionId: session?.id,

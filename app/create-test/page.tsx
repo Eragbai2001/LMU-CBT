@@ -12,6 +12,7 @@ import QuestionEditor from "@/components/admin/question-editor";
 import QuestionList from "@/components/admin/question-list";
 import TestReview from "@/components/admin/test-review";
 import { getUser } from "@/lib/getUser";
+import FullPageLoader from "@/components/Loader/full-page-loader";
 
 // Define types
 interface Option {
@@ -100,7 +101,6 @@ export default function CreateTestPage({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
 
   useEffect(() => {
     async function checkAuthorization() {
@@ -154,7 +154,11 @@ export default function CreateTestPage({
   }, [router, initialData, editId]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div>
+        <FullPageLoader message="Loading loading test creator" />
+      </div>
+    );
   }
 
   const handleTestInfoChange = (
@@ -322,9 +326,6 @@ export default function CreateTestPage({
     }
 
     try {
-
-
-
       const endpoint = testData.id
         ? `/api/edit-test/${testData.id}` // Use the ID for updates
         : "/api/auth/create-test"; // Create a new test if no ID exists
@@ -357,7 +358,6 @@ export default function CreateTestPage({
         return;
       }
 
-      
       console.log("Test ID type:", typeof testData.id);
       router.push("/dashboard/practice");
     } catch (error) {
@@ -425,7 +425,7 @@ export default function CreateTestPage({
         <div className="flex items-center mb-8">
           <button
             onClick={goBack}
-            className="p-2 mr-4 rounded-full hover:bg-gray-100 transition-colors"
+            className="p-2 mr-4 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <ArrowLeft className="h-5 w-5 text-gray-600" />
           </button>

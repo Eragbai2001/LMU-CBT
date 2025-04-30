@@ -98,7 +98,7 @@ const WeeklyProgressBarChart = () => {
         {chartData ? (
           <Bar data={chartData} options={options} />
         ) : (
-          <p>Loading...</p>
+          <p></p>
         )}
       </div>
       <div className="mt-4 text-gray-700">

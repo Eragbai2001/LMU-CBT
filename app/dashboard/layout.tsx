@@ -21,8 +21,10 @@ import {
 } from "lucide-react";
 import { SidebarLogo } from "@/components/dashboard/sidebar/sidebar-logo";
 import CustomSignOut from "@/components/dashboard/sidebar/custom-signout";
+import LoaderAnimation from "@/components/Loader/loader-animation";
 
-export default function Layout({ children }: { children: ReactNode }) {
+
+export default function Layout({ children, message = "Loading your content" }: { children: ReactNode; message?: string }) {
   const [open, setOpen] = useState<boolean>(false);
   const { status } = useSession();
   const router = useRouter();
@@ -63,7 +65,9 @@ export default function Layout({ children }: { children: ReactNode }) {
   }, [open]);
 
   if (status === "unauthenticated") return null;
-  if (status === "loading") return <p>Loading...</p>;
+  if (status === "loading") return    <div className="fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+  <LoaderAnimation size="large" text={message} />
+</div>;
 
   const menuLinks = [
     {

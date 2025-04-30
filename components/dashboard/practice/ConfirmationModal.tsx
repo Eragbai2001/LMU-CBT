@@ -10,6 +10,7 @@ interface ConfirmationModalProps {
   cancelText: string;
   onConfirm: () => void;
   onCancel: () => void;
+  confirmDisabled?: boolean;
 }
 
 export default function ConfirmationModal({
@@ -20,6 +21,7 @@ export default function ConfirmationModal({
   cancelText,
   onConfirm,
   onCancel,
+  confirmDisabled = false,
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
@@ -48,7 +50,8 @@ export default function ConfirmationModal({
             </button>
             <button
               onClick={onConfirm}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              disabled={confirmDisabled}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors cursor-pointer"
             >
               {confirmText}
             </button>

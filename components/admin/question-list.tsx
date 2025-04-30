@@ -92,7 +92,7 @@ export default function QuestionList({
         </button>
         <button
           onClick={onNext}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
           disabled={questions.length === 0}
         >
           Continue to Review

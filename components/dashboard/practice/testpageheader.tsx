@@ -1,6 +1,6 @@
 // TestHeader.jsx
 import React from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TestHeaderProps {
@@ -9,6 +9,7 @@ interface TestHeaderProps {
   timeRemaining: number | null;
   isTimeWarning: boolean;
   onReturnHome: () => void;
+  topics?: string[] | null;
 }
 
 export default function TestHeader({
@@ -17,6 +18,7 @@ export default function TestHeader({
   timeRemaining,
   isTimeWarning,
   onReturnHome,
+  topics,
 }: TestHeaderProps) {
   const formatTime = (seconds: number): string => {
     const minutes: number = Math.floor(seconds / 60);
@@ -29,7 +31,7 @@ export default function TestHeader({
   return (
     <header className="px-4 py-3 sticky top-0 z-10">
       <div className="max-w-6xl mx-auto flex justify-between items-center bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center ">
+        <div className="flex items-center">
           <button
             onClick={onReturnHome}
             className="mr-4 p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
@@ -41,6 +43,14 @@ export default function TestHeader({
             <div className="text-sm text-gray-600">
               Practice Test {year && `• ${year}`}
             </div>
+            {topics && topics.length > 0 && (
+              <div className="flex items-center space-x-1 mt-1">
+                <Tag className="w-3 h-3" />
+                <span>
+                  {topics.length === 1 ? topics[0] : `${topics.length} Topics`}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

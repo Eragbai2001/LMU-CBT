@@ -229,10 +229,17 @@ export default function PracticeTests() {
             ? `Are you sure you want to delete "${testToDelete.title}"? This action cannot be undone.`
             : ""
         }
-        confirmText="Delete"
+        confirmText={loading ? "Deleting..." : "Delete"} // Show loader text
         cancelText="Cancel"
-        onConfirm={() => testToDelete && confirmDelete()}
+        onConfirm={async () => {
+          if (testToDelete) {
+            setLoading(true); // Set loading state to true
+            await confirmDelete(); // Perform delete operation
+            setLoading(false); // Reset loading state
+          }
+        }}
         onCancel={cancelDelete}
+        confirmDisabled={loading} // Disable confirm button while loading
       />
     </div>
   );

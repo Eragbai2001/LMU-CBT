@@ -15,11 +15,12 @@ export async function createUserInDb({
   email,
   name,
   password = null, // Default to null for OAuth users
+  role = "USER", // Default role is USER
 }: {
   email: string;
   name: string;
   password?: string | null;
-  role?: "ADMIN" | "USER";
+  role?: "ADMIN" | "USER"; // Add role to the function parameters
 }) {
   try {
     return await db.user.create({
@@ -27,6 +28,7 @@ export async function createUserInDb({
         email,
         name,
         password, // This now allows both null and actual passwords
+        role, // Include the role in the database creation
       },
     });
   } catch (error) {
