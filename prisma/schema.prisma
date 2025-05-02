@@ -61,7 +61,7 @@ model PracticeSession {
   testId       String
   durationId   String?
   yearId       String
-   topics     String[]
+  topics     String[]
   startedAt    DateTime     @default(now())
 
   test         PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade)
@@ -81,6 +81,15 @@ model Question {
   testId         String
   image          String?
   points         Int?
+}
+
+model MaintenanceSettings {
+  id                 Int      @id @default(autoincrement())
+  is_maintenance_mode Boolean  @default(false)
+  maintenance_message String   @default("Our site is currently under maintenance. We'll be back soon!")
+  updated_at         DateTime @default(now()) @updatedAt
+
+  @@map("maintenance_settings")
 }
 
 

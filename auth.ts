@@ -43,12 +43,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
 
           // Validate input
-          const { email, password } = await signInSchema.parseAsync(credentials);
+          const { email, password } = await signInSchema.parseAsync(
+            credentials
+          );
 
           // Get user from database
           const user = await getUserFromDb(email);
           if (!user) {
-            throw new Error("User not found. Please check your email or sign up.");
+            throw new Error(
+              "User not found. Please check your email or sign up."
+            );
           }
 
           // Check if the user was registered via OAuth (no password stored)
@@ -59,7 +63,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
 
           // Compare password
-          const isValidPassword = await comparePasswords(password, user.password);
+          const isValidPassword = await comparePasswords(
+            password,
+            user.password
+          );
           if (!isValidPassword) {
             throw new Error("Incorrect password. Please try again.");
           }
@@ -75,7 +82,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           if (error instanceof ZodError) {
             return Promise.reject(
-              new Error("Invalid input format. Please enter a valid email and password.")
+              new Error(
+                "Invalid input format. Please enter a valid email and password."
+              )
             );
           }
 
@@ -97,8 +106,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       if (!dbUser && account?.provider === "google") {
         // Determine if the user should be an admin based on the email
-        const isAdmin = user.email === "aideloje.josiah@lmu.edu.ng";
-        
+        const adminEmails = [
+          
+          "admin2@example.com",
+          "admin3@example.com",
+        ];
+        const isAdmin = adminEmails.includes(user.email);
+
         // Create new user
         dbUser = await createUserInDb({
           email: user.email,

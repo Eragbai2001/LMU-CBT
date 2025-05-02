@@ -184,8 +184,8 @@ export default function PracticeTests() {
         ))}
       </div>
 
-      {hasMoreTests && (
-        <div className="flex justify-center mt-8 space-x-3">
+      <div className="flex justify-center mt-8 space-x-3">
+        {hasMoreTests && (
           <button
             onClick={() => setShowAll(!showAll)}
             className="flex items-center justify-center py-2.5 px-6 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium rounded-lg text-sm transition-all shadow-sm hover:shadow cursor-pointer group"
@@ -198,21 +198,20 @@ export default function PracticeTests() {
               }`}
             />
           </button>
-
-          {isAdmin && (
-            <button
-              onClick={() => router.push("/create-test")}
-              className="flex items-center justify-center py-2.5 px-6 bg-blue-600 text-white font-medium rounded-lg text-sm shadow-sm hover:bg-blue-700 transition-all hover:shadow cursor-pointer group"
-            >
-              <span>Create Test</span>
-              <Plus
-                size={16}
-                className="ml-2 transition-transform group-hover:scale-110 duration-300"
-              />
-            </button>
-          )}
-        </div>
-      )}
+        )}
+        {isAdmin && (
+          <button
+            onClick={() => router.push("/create-test")}
+            className="flex items-center justify-center py-2.5 px-6 bg-blue-600 text-white font-medium rounded-lg text-sm shadow-sm hover:bg-blue-700 transition-all hover:shadow cursor-pointer group"
+          >
+            <span>Create Test</span>
+            <Plus
+              size={16}
+              className="ml-2 transition-transform group-hover:scale-110 duration-300"
+            />
+          </button>
+        )}
+      </div>
 
       {selectedTest && (
         <TestPopupModal

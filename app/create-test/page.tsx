@@ -370,7 +370,7 @@ export default function CreateTestPage({
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     } else {
-      router.push("/dashboard/practice-tests");
+      router.push("/dashboard/practice");
     }
   };
 

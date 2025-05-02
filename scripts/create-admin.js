@@ -1,37 +1,31 @@
 import { PrismaClient } from "@prisma/client";
-import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
   const email = process.argv[2];
-  const password = process.argv[3];
 
-  if (!email || !password) {
-    console.error("Please provide an email and password");
+  if (!email) {
+    console.error("Please provide an email");
     process.exit(1);
   }
 
   try {
-    const hashedPassword = await hash(password, 10);
-
     const user = await prisma.user.upsert({
       where: { email },
       update: {
-        role: "ADMIN",
-        password: hashedPassword,
+        role: "ADMIN", // Update the role to ADMIN if the user exists
       },
       create: {
         email,
-        name: "Admin User",
-        password: hashedPassword,
-        role: "ADMIN",
+        name: "Admin User", // Default name for new admin users
+        role: "ADMIN", // Assign ADMIN role to new users
       },
     });
 
     console.log(`Admin user created/updated: ${user.email}`);
   } catch (error) {
-    console.error("Error creating admin user:", error);
+    console.error("Error creating/updating admin user:", error);
   } finally {
     await prisma.$disconnect();
   }
