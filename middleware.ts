@@ -86,10 +86,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
 
-      // If logged in but not an admin, redirect to unauthorized
-      if (token.role !== "ADMIN") {
-        return NextResponse.redirect(new URL("/unauthorized", request.url));
-      }
+     
     }
 
     return NextResponse.next();
@@ -111,3 +108,5 @@ export const config = {
     "/((?!_next/static|_next/image).*)",
   ],
 };
+
+
