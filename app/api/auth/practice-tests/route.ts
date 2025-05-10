@@ -8,59 +8,45 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     const tests = await prisma.practiceTest.findMany({
-      include: {
-        durationOptions: true,
-        yearOptions: true,
-        questions: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        icon: true,
+        isPopular: true,
+        questionCount: true,
+        testType: true, // Make sure this field is included
+        durationOptions: {
           select: {
-            topic: true,
-            testId: true,
+            id: true,
+            minutes: true,
+          },
+        },
+        yearOptions: {
+          select: {
+            id: true,
+            value: true,
           },
         },
       },
     });
 
-    const formattedTests = tests.map((test) => {
-      const topicsByYear: Record<string, Set<string>> = {};
+    // Map the results to include duration
+    const testsWithDuration = tests.map((test) => ({
+      ...test,
+      duration: test.durationOptions[0]?.minutes || 0,
+    }));
 
-      test.yearOptions.forEach((year) => {
-        const topics = test.questions
-          .filter((q) => !!q.topic)
-          .map((q) => q.topic as string);
+    console.log(
+      "Sending tests with types:",
+      testsWithDuration.map((t) => ({
+        id: t.id,
+        title: t.title,
+        testType: t.testType,
+      }))
+    );
 
-        topicsByYear[year.id] = new Set(topics);
-      });
-
-      return {
-        id: test.id,
-        title: test.title,
-        description: test.description,
-        icon: test.icon,
-        questionCount: test.questionCount,
-        isPopular: test.isPopular || false,
-        duration:
-          test.durationOptions.length > 0
-            ? Math.round(
-                test.durationOptions.reduce((sum, d) => sum + d.minutes, 0) /
-                  test.durationOptions.length
-              )
-            : 0,
-        durationOptions: test.durationOptions.map((d) => ({
-          id: d.id,
-          minutes: d.minutes,
-        })),
-        yearOptions: test.yearOptions.map((y) => ({
-          id: y.id,
-          value: y.value,
-        })),
-        topicsByYear: Object.entries(topicsByYear).map(([yearId, topicSet]) => ({
-          yearId,
-          topics: Array.from(topicSet),
-        })),
-      };
-    });
-
-    return NextResponse.json(formattedTests);
+    return NextResponse.json(testsWithDuration);
   } catch (error) {
     console.error("Error fetching practice tests:", error);
     return NextResponse.json(
@@ -69,5 +55,3 @@ export async function GET() {
     );
   }
 }
-
-

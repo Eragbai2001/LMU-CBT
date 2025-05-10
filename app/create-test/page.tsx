@@ -24,11 +24,12 @@ export interface Question {
   id: number;
   text: string;
   points: number;
-  options: Option[];
-  correctAnswer: string;
+  options?: Option[];
+  correctAnswer?: string;
   image?: string;
   topic?: string;
   solution?: string;
+  theoryAnswer?: string; // Added field for theory question answer (only for theory questions)
 }
 
 export interface TestData {
@@ -43,6 +44,7 @@ export interface TestData {
   isPopular: boolean;
   questionCount: number;
   points: number;
+  testType: "objective" | "theory"; // Added field for test type
 }
 
 const availableIcons = [
@@ -67,7 +69,7 @@ export default function CreateTestPage({
   const editId = searchParams.get("id");
   const [loading, setLoading] = useState(true);
   const [globalError, setGlobalError] = useState<string | null>(null);
-  const [isAuthorized, setIsAuthorized] = useState(false); // Track authorization status
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   const [testData, setTestData] = useState<TestData>(
     initialData || {
@@ -81,6 +83,7 @@ export default function CreateTestPage({
       isPopular: false,
       questionCount: 0,
       points: 0,
+      testType: "objective", // Default to objective
     }
   );
 
@@ -98,6 +101,7 @@ export default function CreateTestPage({
     correctAnswer: "A",
     topic: "",
     solution: "",
+    theoryAnswer: "", // New field for theory questions
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -107,12 +111,11 @@ export default function CreateTestPage({
       const user = await getUser();
 
       if (!user || user.role !== "ADMIN") {
-        // Redirect unauthorized users
         router.push("/unauthorized");
         return;
       }
 
-      setIsAuthorized(true); // User is authorized
+      setIsAuthorized(true);
     }
 
     checkAuthorization();
@@ -140,6 +143,7 @@ export default function CreateTestPage({
               questionCount: Number(data.questionCount) || 0,
               questions: Array.isArray(data.questions) ? data.questions : [],
               points: Number(data.points) || 0,
+              testType: data.testType ?? "objective", // Default to objective if not specified
             });
           } else {
             console.error("Invalid data structure in localStorage");
@@ -152,6 +156,37 @@ export default function CreateTestPage({
       setLoading(false);
     }
   }, [router, initialData, editId]);
+
+  // Update currentQuestion when testType changes
+  useEffect(() => {
+    if (testData.testType === "theory") {
+      setCurrentQuestion({
+        id: currentQuestion.id,
+        text: currentQuestion.text,
+        points: currentQuestion.points,
+        image: currentQuestion.image,
+        topic: currentQuestion.topic,
+        solution: currentQuestion.solution,
+        theoryAnswer: currentQuestion.theoryAnswer || "",
+      });
+    } else {
+      setCurrentQuestion({
+        id: currentQuestion.id,
+        text: currentQuestion.text,
+        points: currentQuestion.points,
+        image: currentQuestion.image,
+        options: currentQuestion.options || [
+          { id: "A", text: "" },
+          { id: "B", text: "" },
+          { id: "C", text: "" },
+          { id: "D", text: "" },
+        ],
+        correctAnswer: currentQuestion.correctAnswer || "A",
+        topic: currentQuestion.topic,
+        solution: currentQuestion.solution,
+      });
+    }
+  }, [testData.testType]);
 
   if (loading) {
     return (
@@ -182,6 +217,13 @@ export default function CreateTestPage({
     });
   };
 
+  const handleTestTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setTestData({
+      ...testData,
+      testType: e.target.value as "objective" | "theory",
+    });
+  };
+
   const togglePopular = () => {
     setTestData({
       ...testData,
@@ -206,6 +248,8 @@ export default function CreateTestPage({
   };
 
   const handleOptionChange = (id: string, text: string) => {
+    if (!currentQuestion.options) return;
+
     setCurrentQuestion({
       ...currentQuestion,
       options: currentQuestion.options.map((option) =>
@@ -218,6 +262,13 @@ export default function CreateTestPage({
     setCurrentQuestion({
       ...currentQuestion,
       correctAnswer: id,
+    });
+  };
+
+  const handleTheoryAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCurrentQuestion({
+      ...currentQuestion,
+      theoryAnswer: e.target.value,
     });
   };
 
@@ -249,15 +300,21 @@ export default function CreateTestPage({
       newErrors.questionText = "Question text is required";
     }
 
-    let hasEmptyOption = false;
-    currentQuestion.options.forEach((option) => {
-      if (!option.text.trim()) {
-        hasEmptyOption = true;
-      }
-    });
+    // Validate based on the test type
+    if (testData.testType === "objective") {
+      let hasEmptyOption = false;
+      currentQuestion.options?.forEach((option) => {
+        if (!option.text.trim()) {
+          hasEmptyOption = true;
+        }
+      });
 
-    if (hasEmptyOption) {
-      newErrors.options = "All options must have text";
+      if (hasEmptyOption) {
+        newErrors.options = "All options must have text";
+      }
+    } else if (testData.testType === "theory") {
+      // For theory questions, we might want to enforce an answer template
+      // but this is optional based on requirements
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -283,21 +340,34 @@ export default function CreateTestPage({
       points: totalPoints,
     });
 
-    setCurrentQuestion({
-      id: newId + 1,
-      text: "",
-      points: 3,
-      image: "",
-      options: [
-        { id: "A", text: "" },
-        { id: "B", text: "" },
-        { id: "C", text: "" },
-        { id: "D", text: "" },
-      ],
-      correctAnswer: "A",
-      topic: "",
-      solution: "",
-    });
+    // Reset the current question based on test type
+    if (testData.testType === "objective") {
+      setCurrentQuestion({
+        id: newId + 1,
+        text: "",
+        points: 3,
+        image: "",
+        options: [
+          { id: "A", text: "" },
+          { id: "B", text: "" },
+          { id: "C", text: "" },
+          { id: "D", text: "" },
+        ],
+        correctAnswer: "A",
+        topic: "",
+        solution: "",
+      });
+    } else {
+      setCurrentQuestion({
+        id: newId + 1,
+        text: "",
+        points: 3,
+        image: "",
+        topic: "",
+        solution: "",
+        theoryAnswer: "",
+      });
+    }
   };
 
   const removeQuestion = (id: number) => {
@@ -327,8 +397,8 @@ export default function CreateTestPage({
 
     try {
       const endpoint = testData.id
-        ? `/api/edit-test/${testData.id}` // Use the ID for updates
-        : "/api/auth/create-test"; // Create a new test if no ID exists
+        ? `/api/edit-test/${testData.id}`
+        : "/api/auth/create-test";
 
       const method = testData.id ? "PUT" : "POST";
       console.log(testData.id);
@@ -442,6 +512,7 @@ export default function CreateTestPage({
             errors={errors}
             availableIcons={availableIcons}
             onChange={handleTestInfoChange}
+            onTestTypeChange={handleTestTypeChange}
             onTogglePopular={togglePopular}
             onNext={goToNextStep}
           />
@@ -451,6 +522,7 @@ export default function CreateTestPage({
           <div>
             <QuestionEditor
               question={currentQuestion}
+              testType={testData.testType}
               errors={errors}
               onQuestionChange={handleQuestionChange}
               onPointsChange={handlePointsChange}
@@ -459,11 +531,13 @@ export default function CreateTestPage({
               onImageChange={handleImageChange}
               onTopicChange={handleTopicChange}
               onSolutionChange={handleSolutionChange}
+              onTheoryAnswerChange={handleTheoryAnswerChange}
               onAddQuestion={addQuestion}
             />
 
             <QuestionList
               questions={testData.questions}
+              testType={testData.testType}
               error={errors.questions}
               onRemoveQuestion={removeQuestion}
               onBack={() => setCurrentStep(1)}

@@ -1,20 +1,22 @@
 "use client";
 
 import { Trash2, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Question {
   id: number;
   text: string;
   points: number;
-  options: { id: string; text: string }[];
-  correctAnswer: string;
-  image?: string;
+  options?: { id: string; text: string }[];
+  correctAnswer?: string;
   topic?: string;
-  solution?: string;
+  image?: string;
+  theoryAnswer?: string;
 }
 
 interface QuestionListProps {
   questions: Question[];
+  testType: "objective" | "theory"; 
   error?: string;
   onRemoveQuestion: (id: number) => void;
   onBack: () => void;
@@ -23,64 +25,96 @@ interface QuestionListProps {
 
 export default function QuestionList({
   questions,
+  testType,
   error,
   onRemoveQuestion,
   onBack,
   onNext,
 }: QuestionListProps) {
+  const totalPoints = questions.reduce((acc, q) => acc + (q.points || 0), 0);
+
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-6">
-        Added Questions ({questions.length})
-      </h2>
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="flex flex-wrap items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold">
+          {questions.length} Question{questions.length !== 1 ? "s" : ""} Added
+        </h2>
+        <p className="text-sm text-gray-600">
+          Total points: <span className="font-semibold">{totalPoints}</span>
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700 flex items-center">
+          <AlertCircle className="h-4 w-4 mr-2" />
+          {error}
+        </div>
+      )}
 
       {questions.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          No questions added yet. Use the form above to add questions.
+        <div className="text-center py-10 text-gray-500">
+          <p>No questions added yet. Add your first question above.</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {questions.map((question, index) => (
+        <div className="max-h-96 overflow-y-auto pr-1">
+          {questions.map((question) => (
             <div
-              key={
-                typeof question.id === "string"
-                  ? question.id
-                  : `question-${index}`
-              }
-              className="border border-gray-200 rounded-lg p-4"
+              key={question.id}
+              className="border border-gray-200 rounded-lg p-4 mb-3 hover:bg-gray-50 transition-colors"
             >
-              <div className="flex justify-between items-start">
-                <div className="flex items-center">
-                  <span className="w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center font-medium mr-3">
-                    {index + 1}
-                  </span>
-                  <div>
-                    <p className="font-medium">{question.text}</p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {question.points} points • {question.options.length}{" "}
-                      options
-                      {question.image && " • Has image"}
-                      {question.topic && ` • Topic: ${question.topic}`}
-                      {question.solution && " • Has solution"}
+              <div className="flex items-start">
+                <span className="w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium mr-3 flex-shrink-0">
+                  {question.id}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap justify-between items-start mb-1">
+                    <p className="font-medium text-gray-800 text-sm truncate mr-2 flex-1">
+                      {question.text}
                     </p>
+                    {question.topic && (
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                        {question.topic}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {testType === "objective" ? (
+                    <div className="mt-2 flex flex-wrap items-center">
+                      <div className="text-xs text-gray-500 mr-3">Correct: {question.correctAnswer}</div>
+                      <div className="text-xs text-gray-500">Options: {question.options?.length || 0}</div>
+                    </div>
+                  ) : (
+                    <div className="mt-2">
+                      {question.theoryAnswer ? (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                          Reference answer provided
+                        </span>
+                      ) : (
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
+                          No reference answer
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="ml-3 flex-shrink-0">
+                  <div className="flex items-center">
+                    <div className="text-sm font-medium text-gray-700 mr-3">
+                      {question.points} pt{question.points !== 1 ? "s" : ""}
+                    </div>
+                    <button
+                      onClick={() => onRemoveQuestion(question.id)}
+                      className="text-gray-400 hover:text-red-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                      title="Remove question"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
-                <button
-                  onClick={() => onRemoveQuestion(question.id)}
-                  className="p-1 text-gray-500 hover:text-red-500 transition-colors"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
               </div>
             </div>
           ))}
         </div>
-      )}
-
-      {error && (
-        <p className="mt-4 text-sm text-red-500 flex items-center">
-          <AlertCircle className="h-3 w-3 mr-1" /> {error}
-        </p>
       )}
 
       <div className="mt-8 flex justify-between">
@@ -92,7 +126,11 @@ export default function QuestionList({
         </button>
         <button
           onClick={onNext}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+          className={cn(
+            "px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors",
+            questions.length === 0 &&
+              "opacity-50 cursor-not-allowed hover:bg-blue-600"
+          )}
           disabled={questions.length === 0}
         >
           Continue to Review

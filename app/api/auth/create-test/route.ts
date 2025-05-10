@@ -17,6 +17,7 @@ export async function POST(req: Request) {
       duration,
       year,
       questions,
+      testType, // Include the test type field
     } = body;
 
     const testId = uuidv4();
@@ -29,6 +30,7 @@ export async function POST(req: Request) {
         icon,
         isPopular,
         questionCount,
+        testType: testType || "objective", // Store the test type in the database
         durationOptions: {
           connectOrCreate: {
             where: {
@@ -57,26 +59,45 @@ export async function POST(req: Request) {
     // Create questions
     type Question = {
       text: string;
-      options: { text: string }[];
-      correctAnswer: string;
+      options?: { text: string }[];
+      correctAnswer?: string;
       solution?: string;
       topic?: string;
       image?: string;
-
       points?: number;
+      theoryAnswer?: string;
     };
 
-    const questionPayload = questions.map((q: Question) => ({
-      id: uuidv4(),
-      content: q.text,
-      options: q.options.map((o: { text: string }) => o.text),
-      correctAnswer: q.correctAnswer,
-      solution: q.solution || "No solution yet",
-      topic: q.topic || "General",
-      image: q.image || null,
-      points: q.points || 0,
-      testId: test.id,
-    }));
+    const questionPayload = questions.map((q: Question) => {
+      // Base question data for both types
+      const questionData = {
+        id: uuidv4(),
+        content: q.text,
+        solution: q.solution || "No solution yet",
+        topic: q.topic || "General",
+        image: q.image || null,
+        points: q.points || 0,
+        testId: test.id,
+      };
+
+      // For objective questions, add options and correctAnswer
+      if (testType === "objective" && q.options) {
+        return {
+          ...questionData,
+          options: q.options.map((o: { text: string }) => o.text),
+          correctAnswer: q.correctAnswer,
+          theoryAnswer: null,
+        };
+      }
+
+      // For theory questions, add theoryAnswer and set options and correctAnswer to null
+      return {
+        ...questionData,
+        options: [],
+        correctAnswer: null,
+        theoryAnswer: q.theoryAnswer || "",
+      };
+    });
 
     await prisma.question.createMany({
       data: questionPayload,

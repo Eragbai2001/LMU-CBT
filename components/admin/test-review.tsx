@@ -9,11 +9,12 @@ interface Question {
   id: number;
   text: string;
   points: number;
-  options: { id: string; text: string }[];
-  correctAnswer: string;
+  options?: { id: string; text: string }[];
+  correctAnswer?: string;
   image?: string;
   topic?: string;
   solution?: string;
+  theoryAnswer?: string;
 }
 
 interface TestData {
@@ -26,6 +27,7 @@ interface TestData {
   questions: Question[];
   isPopular: boolean;
   points: number;
+  testType: "objective" | "theory";
 }
 
 interface TestReviewProps {
@@ -39,18 +41,19 @@ export default function TestReview({
   onBack,
   onSave,
 }: TestReviewProps) {
-  const [loading, setLoading] = useState(false); // Track loading state
+  const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
-    setLoading(true); // Set loading state to true
+    setLoading(true);
     try {
-      await onSave(); // Call the onSave function
+      await onSave();
     } catch (error) {
       console.error("Error saving test:", error);
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
     }
   };
+
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
       <h2 className="text-xl font-semibold mb-6">Review Test</h2>
@@ -62,6 +65,10 @@ export default function TestReview({
             <div>
               <p className="text-sm text-gray-500">Title</p>
               <p className="font-medium">{testData.title}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Test Type</p>
+              <p className="font-medium capitalize">{testData.testType}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Duration</p>
@@ -121,7 +128,6 @@ export default function TestReview({
                     {question.image && (
                       <div className="bg-gray-100 p-3 rounded-md text-center mb-3 relative">
                         <div className="aspect-video bg-gray-200 flex items-center justify-center overflow-hidden">
-                          {/* Display the actual image if URL exists */}
                           <Image
                             width={50}
                             height={20}
@@ -134,13 +140,13 @@ export default function TestReview({
                                 document.querySelector(".aspect-video");
                               if (parent) {
                                 parent.innerHTML = `
-              <div class="flex items-center justify-center w-full h-full">
-                <svg class="h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span class="ml-2 text-gray-500">Image failed to load</span>
-              </div>
-            `;
+                                  <div class="flex items-center justify-center w-full h-full">
+                                    <svg class="h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span class="ml-2 text-gray-500">Image failed to load</span>
+                                  </div>
+                                `;
                               }
                             }}
                           />
@@ -148,34 +154,46 @@ export default function TestReview({
                       </div>
                     )}
 
-                    <div className="space-y-2 mb-2">
-                      {question.options.map((option) => (
-                        <div
-                          key={option.id}
-                          className={cn(
-                            "flex items-center p-2 rounded-md",
-                            question.correctAnswer === option.id
-                              ? "bg-green-50 border border-green-200"
-                              : ""
-                          )}
-                        >
+                    {testData.testType === "objective" && question.options ? (
+                      <div className="space-y-2 mb-2">
+                        {question.options.map((option) => (
                           <div
+                            key={option.id}
                             className={cn(
-                              "w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm",
+                              "flex items-center p-2 rounded-md",
                               question.correctAnswer === option.id
-                                ? "bg-green-600 text-white"
-                                : "bg-gray-100"
+                                ? "bg-green-50 border border-green-200"
+                                : ""
                             )}
                           >
-                            {option.id}
+                            <div
+                              className={cn(
+                                "w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm",
+                                question.correctAnswer === option.id
+                                  ? "bg-green-600 text-white"
+                                  : "bg-gray-100"
+                              )}
+                            >
+                              {option.id}
+                            </div>
+                            <span>{option.text}</span>
+                            {question.correctAnswer === option.id && (
+                              <Check className="h-4 w-4 text-green-600 ml-auto" />
+                            )}
                           </div>
-                          <span>{option.text}</span>
-                          {question.correctAnswer === option.id && (
-                            <Check className="h-4 w-4 text-green-600 ml-auto" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : testData.testType === "theory" &&
+                      question.theoryAnswer ? (
+                      <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <p className="text-sm font-medium text-blue-800 mb-1">
+                          Reference Answer:
+                        </p>
+                        <p className="text-sm text-blue-700">
+                          {question.theoryAnswer}
+                        </p>
+                      </div>
+                    ) : null}
 
                     {question.solution && (
                       <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
@@ -213,7 +231,7 @@ export default function TestReview({
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
           }`}
-          disabled={loading} // Disable button while loading
+          disabled={loading}
         >
           {loading ? (
             <>

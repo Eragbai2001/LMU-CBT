@@ -25,6 +25,7 @@ interface Test {
   durationOptions: { id: string; minutes: number }[];
   yearOptions: { id: string; value: number }[];
   duration: number;
+  testType?: "objective" | "theory"; // Add test type field
 }
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -89,7 +90,7 @@ export default function PracticeTests() {
     fetch("/api/auth/practice-tests")
       .then((res) => res.json())
       .then((data) => {
-        console.log(data); // Debug the fetched data
+        console.log("Tests from API:", data); // Enhanced logging to check testType values
         setTests(data);
         setLoading(false);
       })
@@ -157,9 +158,24 @@ export default function PracticeTests() {
               )}
             </div>
 
-            <h3 className="font-bold text-lg mb-2 text-gray-800">
-              {test.title}
-            </h3>
+            <div className="flex justify-between items-start">
+              <h3 className="font-bold text-lg mb-2 text-gray-800">
+                {test.title}
+              </h3>
+
+              {/* Fixed test type badge logic */}
+              <span
+                className={`text-xs px-2 py-1 rounded-full ${
+                  test.testType && test.testType === "theory"
+                    ? "bg-purple-100 text-purple-800"
+                    : "bg-blue-100 text-blue-800"
+                }`}
+              >
+                {/* Removed console.log to fix the error */}
+                {test.testType === "theory" ? "Theory" : "Objective"}
+              </span>
+            </div>
+
             <p className="text-sm text-gray-600 mb-4 line-clamp-2">
               {test.description}
             </p>

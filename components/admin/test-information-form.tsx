@@ -15,6 +15,7 @@ interface TestInformationFormProps {
     year: number;
     isPopular: boolean;
     questionCount: number;
+    testType: "objective" | "theory";
   };
   errors: Record<string, string>;
   availableIcons: { id: string; name: string }[];
@@ -23,6 +24,7 @@ interface TestInformationFormProps {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => void;
+  onTestTypeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   onTogglePopular: () => void;
   onNext: () => void;
 }
@@ -32,6 +34,7 @@ export default function TestInformationForm({
   errors,
   availableIcons,
   onChange,
+  onTestTypeChange,
   onTogglePopular,
   onNext,
 }: TestInformationFormProps) {
@@ -90,6 +93,30 @@ export default function TestInformationForm({
               <AlertCircle className="h-3 w-3 mr-1" /> {errors.description}
             </p>
           )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="testType"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Test Type*
+          </label>
+          <select
+            id="testType"
+            name="testType"
+            value={testData.testType}
+            onChange={onTestTypeChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          >
+            <option value="objective">Objective (Multiple Choice)</option>
+            <option value="theory">Theory Questions</option>
+          </select>
+          <p className="mt-1 text-xs text-gray-500">
+            {testData.testType === "objective"
+              ? "Objective tests have multiple-choice questions with specific correct answers."
+              : "Theory tests have open-ended questions that require written responses."}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

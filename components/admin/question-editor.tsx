@@ -7,21 +7,21 @@ import { cn } from "@/lib/utils";
 import OptionInput from "./option-input";
 import ImageUploader from "./image-uploader";
 
-// Update the Question interface to include topic and solution
 interface Question {
   id: number;
   text: string;
   points: number;
-  options: { id: string; text: string }[];
-  correctAnswer: string;
+  options?: { id: string; text: string }[];
+  correctAnswer?: string;
   image?: string;
   topic?: string;
   solution?: string;
+  theoryAnswer?: string;
 }
 
-// Add handlers for topic and solution changes to the props
 interface QuestionEditorProps {
   question: Question;
+  testType: "objective" | "theory";
   errors: Record<string, string>;
   onQuestionChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onPointsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -30,12 +30,13 @@ interface QuestionEditorProps {
   onImageChange: (imageUrl?: string) => void;
   onTopicChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSolutionChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onTheoryAnswerChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onAddQuestion: () => void;
 }
 
-// Update the component to include the new fields
 export default function QuestionEditor({
   question,
+  testType,
   errors,
   onQuestionChange,
   onPointsChange,
@@ -44,12 +45,14 @@ export default function QuestionEditor({
   onImageChange,
   onTopicChange,
   onSolutionChange,
+  onTheoryAnswerChange,
   onAddQuestion,
 }: QuestionEditorProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
       <h2 className="text-xl font-semibold mb-6">
-        Add Question #{question.id}
+        Add {testType === "objective" ? "Objective" : "Theory"} Question #
+        {question.id}
       </h2>
 
       <div className="space-y-6">
@@ -114,7 +117,6 @@ export default function QuestionEditor({
             />
           </div>
 
-          {/* Image Upload Section - Fixed props */}
           <div className="md:col-span-2">
             <ImageUploader
               image={question.image}
@@ -124,36 +126,60 @@ export default function QuestionEditor({
           </div>
         </div>
 
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Answer Options*
-            </label>
-            <div className="flex items-center text-sm text-gray-500">
-              <HelpCircle className="h-3 w-3 mr-1" />
-              <span>Click on the circle to set the correct answer</span>
+        {/* Render different content based on test type */}
+        {testType === "objective" ? (
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Answer Options*
+              </label>
+              <div className="flex items-center text-sm text-gray-500">
+                <HelpCircle className="h-3 w-3 mr-1" />
+                <span>Click on the circle to set the correct answer</span>
+              </div>
+            </div>
+
+            {errors.options && (
+              <p className="mb-2 text-sm text-red-500 flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" /> {errors.options}
+              </p>
+            )}
+
+            <div className="space-y-3">
+              {question.options?.map((option) => (
+                <OptionInput
+                  key={option.id}
+                  id={option.id}
+                  text={option.text}
+                  isCorrect={question.correctAnswer === option.id}
+                  onTextChange={onOptionChange}
+                  onCorrectChange={onCorrectAnswerChange}
+                />
+              ))}
             </div>
           </div>
-
-          {errors.options && (
-            <p className="mb-2 text-sm text-red-500 flex items-center">
-              <AlertCircle className="h-3 w-3 mr-1" /> {errors.options}
+        ) : (
+          <div>
+            <label
+              htmlFor="theoryAnswer"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Reference Answer (Optional)
+            </label>
+            <textarea
+              id="theoryAnswer"
+              value={question.theoryAnswer || ""}
+              onChange={onTheoryAnswerChange}
+              placeholder="Provide a reference answer or key points to look for in student responses"
+              rows={4}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              This answer will be used as a reference for grading and will not
+              be shown to students.
             </p>
-          )}
-
-          <div className="space-y-3">
-            {question.options.map((option) => (
-              <OptionInput
-                key={option.id}
-                id={option.id}
-                text={option.text}
-                isCorrect={question.correctAnswer === option.id}
-                onTextChange={onOptionChange}
-                onCorrectChange={onCorrectAnswerChange}
-              />
-            ))}
           </div>
-        </div>
+        )}
 
         <div>
           <label
@@ -166,7 +192,7 @@ export default function QuestionEditor({
             id="solution"
             value={question.solution || ""}
             onChange={onSolutionChange}
-            placeholder="Explain why the correct answer is right (will be shown after the test)"
+            placeholder="Explain the solution (will be shown after the test)"
             rows={3}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           />

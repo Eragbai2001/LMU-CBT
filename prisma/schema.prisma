@@ -10,6 +10,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Keep the Avatar model for your colleague
+model Avatar {
+  id        Int      @id @default(autoincrement())
+  userId    String   @unique 
+  url       String
+  type      String?
+  seed      String?
+  initials  String?
+  user      User?    @relation(fields: [userId], references: [id], name: "UserAvatar")
+}
 
 enum Role {
   ADMIN
@@ -24,7 +34,8 @@ model User {
   resetToken        String?   @unique
   resetTokenExpiry  DateTime?
   createdAt         DateTime  @default(now())
-  role              Role      @default(USER) // Add role field with default value
+  role              Role      @default(USER)
+  avatar            Avatar?   @relation(name: "UserAvatar")
 }
 
 model PracticeTest {
@@ -34,11 +45,12 @@ model PracticeTest {
   icon           String
   isPopular      Boolean           @default(false)
   questionCount  Int
+  testType       String?           @default("objective") // Made optional with default for backward compatibility
   duration       Int?
   durationOptions Duration[]       @relation("TestDurations")
   yearOptions    Year[]            @relation("TestYears")
-  sessions       PracticeSession[] // Removed onDelete: Cascade
-  questions      Question[]        // Removed onDelete: Cascade
+  sessions       PracticeSession[] 
+  questions      Question[]        
 }
 
 model Duration {
@@ -61,26 +73,26 @@ model PracticeSession {
   testId       String
   durationId   String?
   yearId       String
-  topics     String[]
+  topics       String[]
   startedAt    DateTime     @default(now())
 
   test         PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade)
-  duration     Duration?     @relation(fields: [durationId], references: [id])
-  year         Year         @relation(fields: [yearId], references: [id], onDelete: Cascade) // Add onDelete: Cascade here
+  duration     Duration?    @relation(fields: [durationId], references: [id])
+  year         Year         @relation(fields: [yearId], references: [id], onDelete: Cascade)
 }
-
 
 model Question {
   id             String        @id @default(cuid())
   content        String
   options        String[]
-  correctAnswer  String
+  correctAnswer  String?       // Made optional for theory questions
   solution       String?
   topic          String?
-  test           PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade) // Moved onDelete: Cascade here
+  test           PracticeTest  @relation(fields: [testId], references: [id], onDelete: Cascade)
   testId         String
   image          String?
   points         Int?
+  theoryAnswer   String?       // Added for theory questions, optional
 }
 
 model MaintenanceSettings {
