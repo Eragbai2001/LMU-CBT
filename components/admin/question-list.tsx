@@ -1,7 +1,8 @@
 "use client";
 
-import { Trash2, AlertCircle } from "lucide-react";
+import { Trash2, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState, useMemo } from "react";
 
 interface Question {
   id: number;
@@ -12,11 +13,12 @@ interface Question {
   topic?: string;
   image?: string;
   theoryAnswer?: string;
+  yearValue?: number; // Add yearValue to the interface
 }
 
 interface QuestionListProps {
   questions: Question[];
-  testType: "objective" | "theory"; 
+  testType: "objective" | "theory";
   error?: string;
   onRemoveQuestion: (id: number) => void;
   onBack: () => void;
@@ -32,6 +34,49 @@ export default function QuestionList({
   onNext,
 }: QuestionListProps) {
   const totalPoints = questions.reduce((acc, q) => acc + (q.points || 0), 0);
+  const [expandedYears, setExpandedYears] = useState<Record<number, boolean>>(
+    {}
+  );
+
+  // Group questions by yearValue
+  const questionsByYear = useMemo(() => {
+    const grouped: Record<number, Question[]> = {};
+
+    // Default for questions without a year
+    const currentYear = new Date().getFullYear();
+
+    questions.forEach((q) => {
+      const year = q.yearValue || currentYear;
+      if (!grouped[year]) {
+        grouped[year] = [];
+      }
+      grouped[year].push(q);
+    });
+
+    // Initialize expandedYears state for any new years
+    Object.keys(grouped).forEach((yearKey) => {
+      const year = Number(yearKey);
+      if (expandedYears[year] === undefined) {
+        setExpandedYears((prev) => ({ ...prev, [year]: true }));
+      }
+    });
+
+    return grouped;
+  }, [questions, expandedYears]);
+
+  // Sort years for display
+  const sortedYears = useMemo(() => {
+    return Object.keys(questionsByYear)
+      .map(Number)
+      .sort((a, b) => b - a); // Newest years first
+  }, [questionsByYear]);
+
+  const toggleYearExpansion = (year: number) => {
+    setExpandedYears((prev) => ({
+      ...prev,
+      [year]: !prev[year],
+    }));
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
@@ -57,61 +102,97 @@ export default function QuestionList({
         </div>
       ) : (
         <div className="max-h-96 overflow-y-auto pr-1">
-          {questions.map((question) => (
-            <div
-              key={question.id}
-              className="border border-gray-200 rounded-lg p-4 mb-3 hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-start">
-                <span className="w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium mr-3 flex-shrink-0">
-                  {question.id}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap justify-between items-start mb-1">
-                    <p className="font-medium text-gray-800 text-sm truncate mr-2 flex-1">
-                      {question.text}
-                    </p>
-                    {question.topic && (
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                        {question.topic}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {testType === "objective" ? (
-                    <div className="mt-2 flex flex-wrap items-center">
-                      <div className="text-xs text-gray-500 mr-3">Correct: {question.correctAnswer}</div>
-                      <div className="text-xs text-gray-500">Options: {question.options?.length || 0}</div>
-                    </div>
+          {sortedYears.map((year) => (
+            <div key={year} className="mb-4">
+              <div
+                className="flex items-center justify-between bg-gray-100 p-3 rounded-t-lg cursor-pointer"
+                onClick={() => toggleYearExpansion(year)}
+              >
+                <h3 className="font-medium text-gray-700">
+                  Year: {year} ({questionsByYear[year].length} questions)
+                </h3>
+                <button className="p-1 text-gray-500 hover:bg-gray-200 rounded">
+                  {expandedYears[year] ? (
+                    <ChevronUp size={18} />
                   ) : (
-                    <div className="mt-2">
-                      {question.theoryAnswer ? (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                          Reference answer provided
-                        </span>
-                      ) : (
-                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
-                          No reference answer
-                        </span>
-                      )}
-                    </div>
+                    <ChevronDown size={18} />
                   )}
-                </div>
-                <div className="ml-3 flex-shrink-0">
-                  <div className="flex items-center">
-                    <div className="text-sm font-medium text-gray-700 mr-3">
-                      {question.points} pt{question.points !== 1 ? "s" : ""}
-                    </div>
-                    <button
-                      onClick={() => onRemoveQuestion(question.id)}
-                      className="text-gray-400 hover:text-red-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
-                      title="Remove question"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
+                </button>
               </div>
+
+              {expandedYears[year] && (
+                <div className="border border-gray-200 border-t-0 rounded-b-lg p-2">
+                  {questionsByYear[year].map((question, index) => {
+                    // Ensure question.id is valid and not NaN, fallback to index if needed
+                    const questionKey = Number.isNaN(question.id)
+                      ? `question-${year}-${index}`
+                      : question.id;
+
+                    return (
+                      <div
+                        key={questionKey}
+                        className="border border-gray-200 rounded-lg p-4 mb-3 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-start">
+                          <div className="w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium mr-3 flex-shrink-0">
+                            {String(index + 1)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap justify-between items-start mb-1">
+                              <p className="font-medium text-gray-800 text-sm truncate mr-2 flex-1">
+                                {question.text}
+                              </p>
+                              {question.topic && (
+                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                                  {question.topic}
+                                </span>
+                              )}
+                            </div>
+
+                            {testType === "objective" ? (
+                              <div className="mt-2 flex flex-wrap items-center">
+                                <div className="text-xs text-gray-500 mr-3">
+                                  Correct: {question.correctAnswer}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Options: {question.options?.length || 0}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="mt-2">
+                                {question.theoryAnswer ? (
+                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                    Reference answer provided
+                                  </span>
+                                ) : (
+                                  <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
+                                    No reference answer
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="ml-3 flex-shrink-0">
+                            <div className="flex items-center">
+                              <div className="text-sm font-medium text-gray-700 mr-3">
+                                {question.points} pt
+                                {question.points !== 1 ? "s" : ""}
+                              </div>
+                              <button
+                                onClick={() => onRemoveQuestion(question.id)}
+                                className="text-gray-400 hover:text-red-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                                title="Remove question"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           ))}
         </div>

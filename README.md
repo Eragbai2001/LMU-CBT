@@ -1,40 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Computer-Based Testing Platform
+
+A modern, feature-rich online examination system built with Next.js, Prisma, and TypeScript.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [Administration](#administration)
+- [Project Structure](#project-structure)
+- [Technical Details](#technical-details)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+
+## Overview
+
+This Computer-Based Testing (CBT) platform provides an intuitive interface for students to take practice tests and for administrators to create, manage, and analyze test results. The system supports both objective (multiple-choice) and theory-based assessments with features like offline support, year-based filtering, and comprehensive analytics.
+
+## Features
+
+### Test Types
+- **Objective Tests**: Multiple-choice questions with automated scoring
+- **Theory Tests**: Open-ended questions requiring written responses
+- **Mixed Format**: Combine both question types in a single assessment
+
+### Smart Filtering & Organization
+- **Year-Based Filtering**: Questions filtered by academic year
+- **Topic-Based Filtering**: Focus practice on specific subject areas
+- **Question Grouping**: Questions grouped by year in admin interface
+
+### User Experience
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Offline Support**: Take tests even with intermittent connectivity
+- **Local Caching**: Test data cached for improved performance
+- **Progress Tracking**: Visual indicators of test progress
+- **Question Flagging**: Mark questions for later review
+- **Timed Tests**: Option for time-boxed or unlimited duration tests
+
+### Admin Capabilities
+- **Test Creation**: Intuitive interface for creating tests
+- **Question Management**: Add, edit, and organize questions by year
+- **Rich Content**: Support for images and formatted text in questions
+- **Analytics**: Track student performance and identify learning gaps
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 16.x or higher
+- PostgreSQL database
+- npm or yarn package manager
 
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/yourusername/cbt.git
+cd cbt
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-
-
-To add admin use this code node scripts/create-admin.js your-email.com your-password
+3. Configure environment variables:

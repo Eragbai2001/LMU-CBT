@@ -78,6 +78,8 @@ export async function POST(req: Request) {
         image: q.image || null,
         points: q.points || 0,
         testId: test.id,
+        // Ensure yearValue is set for every question
+        yearValue: year,
       };
 
       // For objective questions, add options and correctAnswer

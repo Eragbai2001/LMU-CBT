@@ -85,14 +85,15 @@ model Question {
   id             String        @id @default(cuid())
   content        String
   options        String[]
-  correctAnswer  String?       // Made optional for theory questions
+  correctAnswer  String?       // Optional for theory questions
   solution       String?
   topic          String?
   test           PracticeTest  @relation(fields: [testId], references: [id], onDelete: Cascade)
   testId         String
   image          String?
   points         Int?
-  theoryAnswer   String?       // Added for theory questions, optional
+  theoryAnswer   String?       // For theory questions
+  yearValue      Int?          // Store the year value directly for filtering
 }
 
 model MaintenanceSettings {

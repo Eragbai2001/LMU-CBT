@@ -5,10 +5,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SkeletonLoader from "./skeletonLoader";
-import TestHeader from "./testpageheader";
 import StatsBar from "./statsbar";
 import QuestionContent from "./questioncontent";
 import QuestionNavigation from "./questionNavigation";
+import TestHeader from "./testpageheader";
 
 interface Question {
   id: string;
@@ -42,9 +42,8 @@ export default function TestPage() {
   const testId = searchParams.get("testId");
   const durationId = searchParams.get("durationId");
   const yearId = searchParams.get("yearId");
-  const selectedTopics = searchParams.getAll("topic"); // Get all selected topics
+  // const selectedTopics = searchParams.getAll("topic"); // Get all selected topics
 
-  // Rest of your component stays the same
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [testData, setTestData] = useState<TestData | null>(null);
@@ -55,47 +54,146 @@ export default function TestPage() {
   );
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [isTimeWarning, setIsTimeWarning] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
+  const [cachedData, setCachedData] = useState<TestData | null>(null);
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log("Back online");
+      setIsOffline(false);
+      // Try to re-fetch data if we're back online
+      if (testId && !testData) {
+        fetchTestData();
+      }
+    };
+
+    const handleOffline = () => {
+      console.log("Connection lost");
+      setIsOffline(true);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [testId]); // Remove testData from dependencies to prevent loops
 
   // Fetch test data when component mounts
-  useEffect(() => {
-    if (!testId) {
-      setError("Test ID is required");
+  const fetchTestData = async () => {
+    // Only fetch if we actually have a testId and loading is true
+    if (!testId || !loading) {
+      if (!testId) {
+        setError("Test ID is required");
+      }
       setLoading(false);
       return;
     }
 
-    const fetchTestData = async () => {
-      try {
-        // Pass the entire URL search params to maintain all parameters
-        // including multiple topic parameters
-        const searchString = window.location.search;
-        const response = await fetch(`/api/auth/test-questions${searchString}`);
+    try {
+      setLoading(true);
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch test data");
-        }
-
-        const data = await response.json();
-        setTestData(data);
-
-        // Initialize timer if duration is available
-        if (data.test.duration) {
-          setTimeRemaining(data.test.duration * 60); // Convert minutes to seconds
-        }
-
-        // Add a small delay to make the skeleton loader visible
-        setTimeout(() => {
-          setLoading(false);
-        }, 800);
-      } catch (error) {
-        console.error("Error fetching test data:", error);
-        setError("Failed to load test. Please try again.");
+      // Try to use cached data first if we're offline
+      if (isOffline && cachedData) {
+        setTestData(cachedData);
         setLoading(false);
+        return;
       }
-    };
 
-    fetchTestData();
-  }, [testId, durationId, yearId, selectedTopics]); // Include selectedTopics in dependencies
+      // Check local storage for cached test data
+      const cacheKey = `test_${testId}_${yearId}`;
+      const cachedTest = localStorage.getItem(cacheKey);
+
+      if (cachedTest) {
+        try {
+          const parsed = JSON.parse(cachedTest);
+          setTestData(parsed);
+          setCachedData(parsed);
+
+          // Initialize timer if duration is available
+          if (parsed.test.duration && durationId !== "no-time") {
+            setTimeRemaining(parsed.test.duration * 60);
+          }
+
+          setLoading(false);
+          console.log("Using cached test data");
+
+          // If we're online, still fetch fresh data in the background
+          if (navigator.onLine) {
+            fetchFreshData();
+          }
+
+          return;
+        } catch (e) {
+          console.error("Error parsing cached test:", e);
+          // Continue to fetch fresh data if cache parsing fails
+        }
+      }
+
+      // Fetch fresh data if no cache or cache expired
+      await fetchFreshData();
+    } catch (error) {
+      console.error("Error in fetchTestData:", error);
+      setError(
+        isOffline
+          ? "You're offline. Please reconnect to continue."
+          : "Failed to load test. Please try again."
+      );
+      setLoading(false);
+    }
+  };
+
+  const fetchFreshData = async () => {
+    try {
+      const searchString = window.location.search;
+      const response = await fetch(`/api/auth/test-questions${searchString}`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Server returned ${response.status}: ${await response.text()}`
+        );
+      }
+
+      const data = await response.json();
+
+      // Cache the data
+      const cacheKey = `test_${testId}_${yearId}`;
+      localStorage.setItem(cacheKey, JSON.stringify(data));
+
+      setTestData(data);
+      setCachedData(data);
+
+      // Initialize timer with proper calculation
+      if (data.test.duration && durationId !== "no-time") {
+        setTimeRemaining(data.test.duration * 60);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    if (testId) {
+      // Wrap in a condition to prevent running on empty testId
+      fetchTestData();
+    }
+  }, [testId, yearId, durationId]); // Remove selectedTopics dependency
+
+  // Fix the infinite update loop by removing currentQuestionIndex from dependencies
+  useEffect(() => {
+    // Make sure currentQuestionIndex is valid when testData changes
+    if (testData && testData.questions && testData.questions.length > 0) {
+      // Validate current index on load
+      setCurrentQuestionIndex((prevIndex) =>
+        prevIndex >= testData.questions.length ? 0 : prevIndex
+      );
+    }
+  }, [testData]); // Only depend on testData changing
 
   // Timer effect and other functions remain unchanged
   useEffect(() => {
@@ -117,10 +215,18 @@ export default function TestPage() {
     return () => clearInterval(timer);
   }, [timeRemaining, isTimeWarning]);
 
-  // Format time
+  // Format time correctly to handle 60 minutes properly
   const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${remainingSeconds
+        .toString()
+        .padStart(2, "0")}`;
+    }
+
     return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
       .toString()
       .padStart(2, "0")}`;
@@ -180,11 +286,18 @@ export default function TestPage() {
     router.push("/dashboard");
   };
 
+  // Check if test data is available and has questions
   if (loading) {
     return <SkeletonLoader />;
   }
 
-  if (error || !testData) {
+  // Updated error display to show connection issues and retry button
+  if (
+    error ||
+    !testData ||
+    !testData.questions ||
+    testData.questions.length === 0
+  ) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center p-8 max-w-md bg-white rounded-lg shadow-sm">
@@ -193,7 +306,52 @@ export default function TestPage() {
           </div>
           <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
           <p className="text-gray-700 mb-6">
-            {error || "An unknown error occurred"}
+            {isOffline
+              ? "You're currently offline. Please check your internet connection."
+              : !testData
+              ? "Failed to load test data."
+              : !testData.questions || testData.questions.length === 0
+              ? "No questions found for this test."
+              : error || "An unknown error occurred"}
+          </p>
+          <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3 justify-center">
+            <button
+              onClick={fetchTestData}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              {isOffline ? "Try Again When Online" : "Retry"}
+            </button>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Return Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Get the current question safely
+  const currentQuestion = testData.questions[currentQuestionIndex] || null;
+  const totalQuestions = testData.questions.length;
+  const answeredQuestionsCount = Object.keys(userAnswers).length;
+  const progressPercentage = Math.round(
+    (answeredQuestionsCount / totalQuestions) * 100
+  );
+
+  // If no current question exists (which shouldn't happen due to the checks above), show an error
+  if (!currentQuestion) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center p-8 max-w-md bg-white rounded-lg shadow-sm">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">
+            No Questions Available
+          </h1>
+          <p className="text-gray-700 mb-6">
+            This test contains no questions. Please try another test or contact
+            support.
           </p>
           <button
             onClick={() => router.push("/dashboard")}
@@ -206,27 +364,19 @@ export default function TestPage() {
     );
   }
 
-  const currentQuestion = testData.questions[currentQuestionIndex];
-  const totalQuestions = testData.questions.length;
-  const answeredQuestionsCount = Object.keys(userAnswers).length;
-  const progressPercentage = Math.round(
-    (answeredQuestionsCount / totalQuestions) * 100
-  );
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Add TestHeader back */}
       <TestHeader
         title={testData.test.title}
         year={testData.test.year}
         timeRemaining={timeRemaining}
         isTimeWarning={isTimeWarning}
         onReturnHome={() => router.push("/dashboard/practice")}
-        // Show selected topics if any
         topics={testData.test.selectedTopics}
       />
 
-      {/* Rest of your component remains unchanged */}
+      {/* Main content */}
       <main className="max-w-6xl mx-auto px-4 py-6">
         {/* Stats Bar */}
         <StatsBar
@@ -248,7 +398,7 @@ export default function TestPage() {
               onAnswerSelect={handleAnswerSelect}
             />
 
-            {/* Navigation controls */}
+            {/* Navigation controls with safety check */}
             <QuestionNavigation
               currentQuestionIndex={currentQuestionIndex}
               totalQuestions={totalQuestions}

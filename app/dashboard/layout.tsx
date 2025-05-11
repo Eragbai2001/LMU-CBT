@@ -23,8 +23,13 @@ import { SidebarLogo } from "@/components/dashboard/sidebar/sidebar-logo";
 import CustomSignOut from "@/components/dashboard/sidebar/custom-signout";
 import LoaderAnimation from "@/components/Loader/loader-animation";
 
-
-export default function Layout({ children, message = "Loading your content" }: { children: ReactNode; message?: string }) {
+export default function Layout({
+  children,
+  message = "Loading your content",
+}: {
+  children: ReactNode;
+  message?: string;
+}) {
   const [open, setOpen] = useState<boolean>(false);
   const { status } = useSession();
   const router = useRouter();
@@ -65,9 +70,12 @@ export default function Layout({ children, message = "Loading your content" }: {
   }, [open]);
 
   if (status === "unauthenticated") return null;
-  if (status === "loading") return    <div className="fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
-  <LoaderAnimation size="large" text={message} />
-</div>;
+  if (status === "loading")
+    return (
+      <div className="fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+        <LoaderAnimation size="large" text={message} />
+      </div>
+    );
 
   const menuLinks = [
     {
@@ -98,8 +106,14 @@ export default function Layout({ children, message = "Loading your content" }: {
   ];
 
   const showSidebar = pathname.startsWith("/dashboard");
-  // Add this below your existing pathname check for the sidebar
-  const showHeader = !pathname.includes("/dashboard/test");
+  const showHeader =
+    !pathname.includes("/dashboard/practice/test") &&
+    !pathname.includes("/dashboard/practice/theory");
+
+  useEffect(() => {
+    console.log("Current pathname:", pathname);
+    console.log("Header visible:", showHeader);
+  }, [pathname, showHeader]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
@@ -179,7 +193,7 @@ export default function Layout({ children, message = "Loading your content" }: {
               {/* Main content */}
             </div>
           )}
-          <main className="px-10">{children}</main>
+          <main className={`${showHeader ? "px-10" : "p-0"}`}>{children}</main>
         </div>
       </div>
       {/* Profile card */}

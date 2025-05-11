@@ -17,12 +17,14 @@ interface Question {
   topic?: string;
   solution?: string;
   theoryAnswer?: string;
+  yearValue?: number; // Add yearValue
 }
 
 interface QuestionEditorProps {
   question: Question;
   testType: "objective" | "theory";
   errors: Record<string, string>;
+  testYear: number; // Add test year prop
   onQuestionChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onPointsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onOptionChange: (id: string, text: string) => void;
@@ -37,6 +39,7 @@ interface QuestionEditorProps {
 export default function QuestionEditor({
   question,
   testType,
+  testYear, // Use the test year
   errors,
   onQuestionChange,
   onPointsChange,
@@ -81,7 +84,7 @@ export default function QuestionEditor({
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label
               htmlFor="points"
@@ -117,7 +120,20 @@ export default function QuestionEditor({
             />
           </div>
 
-          <div className="md:col-span-2">
+          {/* Display the year this question will be assigned to */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Year
+            </label>
+            <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
+              {testYear}
+              <span className="text-xs text-gray-500 ml-2">
+                (Set in test information)
+              </span>
+            </div>
+          </div>
+
+          <div className="md:col-span-3">
             <ImageUploader
               image={question.image}
               onImageChange={onImageChange}

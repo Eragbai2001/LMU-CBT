@@ -29,7 +29,8 @@ export interface Question {
   image?: string;
   topic?: string;
   solution?: string;
-  theoryAnswer?: string; // Added field for theory question answer (only for theory questions)
+  theoryAnswer?: string;
+  yearValue?: number; // Add yearValue property
 }
 
 export interface TestData {
@@ -102,6 +103,7 @@ export default function CreateTestPage({
     topic: "",
     solution: "",
     theoryAnswer: "", // New field for theory questions
+    yearValue: testData.year, // Set default yearValue
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -168,6 +170,7 @@ export default function CreateTestPage({
         topic: currentQuestion.topic,
         solution: currentQuestion.solution,
         theoryAnswer: currentQuestion.theoryAnswer || "",
+        yearValue: testData.year,
       });
     } else {
       setCurrentQuestion({
@@ -184,9 +187,18 @@ export default function CreateTestPage({
         correctAnswer: currentQuestion.correctAnswer || "A",
         topic: currentQuestion.topic,
         solution: currentQuestion.solution,
+        yearValue: testData.year,
       });
     }
   }, [testData.testType]);
+
+  // Update the yearValue when test year changes
+  useEffect(() => {
+    setCurrentQuestion((prevQuestion) => ({
+      ...prevQuestion,
+      yearValue: testData.year,
+    }));
+  }, [testData.year]);
 
   if (loading) {
     return (
@@ -265,7 +277,9 @@ export default function CreateTestPage({
     });
   };
 
-  const handleTheoryAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleTheoryAnswerChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     setCurrentQuestion({
       ...currentQuestion,
       theoryAnswer: e.target.value,
@@ -324,14 +338,26 @@ export default function CreateTestPage({
 
     setErrors({});
 
-    const newId = testData.questions.length
-      ? Math.max(...testData.questions.map((q) => q.id)) + 1
-      : 1;
+    // Calculate new ID safely to avoid NaN
+    let newId = 1; // Default to 1 if no questions exist
+    if (testData.questions.length > 0) {
+      const existingIds = testData.questions
+        .map(q => Number(q.id))
+        .filter(id => !Number.isNaN(id)); // Filter out NaN values
+        
+      newId = existingIds.length > 0 
+        ? Math.max(...existingIds) + 1
+        : 1;
+    }
 
-    const updatedQuestions = [
-      ...testData.questions,
-      { ...currentQuestion, id: newId },
-    ];
+    // Ensure the question has the yearValue from the test
+    const updatedQuestion = {
+      ...currentQuestion,
+      id: newId,
+      yearValue: testData.year, // Set yearValue to match test year
+    };
+
+    const updatedQuestions = [...testData.questions, updatedQuestion];
     const totalPoints = updatedQuestions.reduce((sum, q) => sum + q.points, 0);
 
     setTestData({
@@ -340,7 +366,7 @@ export default function CreateTestPage({
       points: totalPoints,
     });
 
-    // Reset the current question based on test type
+    // Reset the current question based on test type with the same yearValue
     if (testData.testType === "objective") {
       setCurrentQuestion({
         id: newId + 1,
@@ -356,6 +382,7 @@ export default function CreateTestPage({
         correctAnswer: "A",
         topic: "",
         solution: "",
+        yearValue: testData.year, // Set default yearValue for next question
       });
     } else {
       setCurrentQuestion({
@@ -366,6 +393,7 @@ export default function CreateTestPage({
         topic: "",
         solution: "",
         theoryAnswer: "",
+        yearValue: testData.year, // Set default yearValue for next question
       });
     }
   };
@@ -523,6 +551,7 @@ export default function CreateTestPage({
             <QuestionEditor
               question={currentQuestion}
               testType={testData.testType}
+              testYear={testData.year} // Pass the test year to the question editor
               errors={errors}
               onQuestionChange={handleQuestionChange}
               onPointsChange={handlePointsChange}

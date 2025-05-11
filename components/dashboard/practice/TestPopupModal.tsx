@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { X, FileText, FileQuestion } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -32,11 +32,38 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
 
   const isTheoryTest = test.testType === "theory";
 
+  // Enhanced availableTopics logic with debug and fallback
   const availableTopics = useMemo(() => {
-    return (
-      test.topicsByYear?.find((y) => y.yearId === selectedYear)?.topics || []
-    );
+    // Log available topics data for debugging
+    console.log("Test topics data:", {
+      topicsByYear: test.topicsByYear,
+      selectedYear,
+    });
+
+    // First try to get topics by selected year
+    const topicsBySelectedYear = test.topicsByYear?.find(
+      (y) => y.yearId === selectedYear
+    )?.topics || [];
+    
+    if (topicsBySelectedYear.length > 0) {
+      return topicsBySelectedYear;
+    }
+    
+    // Fallback: If no topics found for selected year or no year selected,
+    // collect all unique topics from all years
+    if (test.topicsByYear && test.topicsByYear.length > 0) {
+      const allTopics = test.topicsByYear.flatMap(y => y.topics || []);
+      // Return unique topics
+      return [...new Set(allTopics)];
+    }
+    
+    return [];
   }, [selectedYear, test.topicsByYear]);
+
+  // Log when component renders to track topic availability
+  useEffect(() => {
+    console.log("Topics available:", availableTopics.length);
+  }, [availableTopics]);
 
   const handleTopicToggle = (topic: string) => {
     setSelectedTopics((prev) =>
@@ -55,18 +82,23 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
     const durationQuery =
       selectedDuration === "no-time" ? "no-time" : selectedDuration;
 
-    // Fix routing paths to match your app structure
+    // FIX: Use correct routes that exist in your application
     const testPage = isTheoryTest
-      ? "/dashboard/theory-test" // Use the correct path for theory tests
-      : "/dashboard/test";      // Use the correct path for objective tests
+      ? "/dashboard/practice/theory" // Make sure this route exists
+      : "/dashboard/practice/test"; // Make sure this route exists
 
-    router.push(
-      `${testPage}?testId=${
-        test.id
-      }&durationId=${durationQuery}&yearId=${selectedYear}${
-        topicQuery ? `&${topicQuery}` : ""
-      }`
-    );
+    try {
+      router.push(
+        `${testPage}?testId=${
+          test.id
+        }&durationId=${durationQuery}&yearId=${selectedYear}${
+          topicQuery ? `&${topicQuery}` : ""
+        }`
+      );
+    } catch (error) {
+      console.error("Navigation error:", error);
+      setLoading(false);
+    }
   };
 
   return (
@@ -215,11 +247,11 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
             </div>
 
             {/* Topics */}
-            {availableTopics.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-3">
-                  Choose Topics (optional)
-                </h3>
+            <div>
+              <h3 className="text-sm font-medium text-gray-600 mb-3">
+                Choose Topics (optional)
+              </h3>
+              {availableTopics.length > 0 ? (
                 <div className="grid grid-cols-2 gap-2">
                   {availableTopics.map((topic) => (
                     <button
@@ -236,8 +268,12 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
                     </button>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+                  No specific topics available. The test will include all topics for the selected year.
+                </div>
+              )}
+            </div>
 
             {/* Theory-specific explanation */}
             {isTheoryTest && (
@@ -245,7 +281,7 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
                 <p className="font-medium mb-1">About Theory Tests:</p>
                 <p>
                   This test requires written answers rather than selecting
-                  options. You'll be presented with questions to answer in your
+                  options. Youll be presented with questions to answer in your
                   own words.
                 </p>
               </div>

@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { 
-  AlertCircle, Clock, Save, ArrowLeft, Flag, 
+  AlertCircle,  Save, ArrowLeft, Flag, 
   CheckCircle, FileQuestion, ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SkeletonLoader from "./skeletonLoader";
+import Image from "next/image";
 
 interface Question {
   id: string;
@@ -186,7 +187,7 @@ export default function TheoryTestPage() {
 
   const currentQuestion = testData.questions[currentQuestionIndex];
   const totalQuestions = testData.questions.length;
-  const answeredQuestionsCount = Object.keys(userAnswers).length;
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -365,10 +366,12 @@ export default function TheoryTestPage() {
               
               {currentQuestion.image && (
                 <div className="mb-6 p-3 bg-gray-50 rounded-lg">
-                  <img 
+                  <Image 
                     src={currentQuestion.image} 
                     alt="Question image" 
                     className="max-h-64 object-contain mx-auto"
+                    width={500}
+                    height={500}
                   />
                 </div>
               )}

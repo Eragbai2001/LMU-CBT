@@ -58,6 +58,7 @@ export default async function EditTestPage({
     isPopular: test.isPopular || false,
     questionCount: transformedQuestions.length, // Same as totalQuestions
     points: transformedQuestions.reduce((sum, q) => sum + (q.points || 0), 0), // Calculate total points
+    testType: (test.testType === "objective" || test.testType === "theory") ? test.testType : "objective", // Ensure testType is valid
   };
 
   return (
