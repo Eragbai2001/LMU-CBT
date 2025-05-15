@@ -2,13 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { 
-  AlertCircle,  Save, ArrowLeft, Flag, 
-  CheckCircle, FileQuestion, ChevronDown
+import {
+  AlertCircle,
+  Save,
+  ArrowLeft,
+  Flag,
+  CheckCircle,
+  FileQuestion,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SkeletonLoader from "./skeletonLoader";
 import Image from "next/image";
+import TheoryQuestionNavigation from "./theory/TheoryQuestionNavigation";
 
 interface Question {
   id: string;
@@ -48,7 +54,9 @@ export default function TheoryTestPage() {
   const [testData, setTestData] = useState<TestData | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
-  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(
+    new Set()
+  );
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [isTimeWarning, setIsTimeWarning] = useState(false);
   const [collapseQuestions, setCollapseQuestions] = useState(false);
@@ -64,7 +72,9 @@ export default function TheoryTestPage() {
     const fetchTestData = async () => {
       try {
         const searchString = window.location.search;
-        const response = await fetch(`/api/auth/theory-questions${searchString}`);
+        const response = await fetch(
+          `/api/auth/theory-questions${searchString}`
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch theory test data");
@@ -112,7 +122,9 @@ export default function TheoryTestPage() {
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const handleAnswerChange = (questionId: string, answer: string) => {
@@ -146,11 +158,15 @@ export default function TheoryTestPage() {
   };
 
   const handleFinishTest = async () => {
-    const hasUnanswered = 
+    const hasUnanswered =
       testData && testData.questions.length > Object.keys(userAnswers).length;
 
-    if (hasUnanswered && 
-      !window.confirm("You have unanswered questions. Are you sure you want to finish the test?")) {
+    if (
+      hasUnanswered &&
+      !window.confirm(
+        "You have unanswered questions. Are you sure you want to finish the test?"
+      )
+    ) {
       return;
     }
 
@@ -188,43 +204,56 @@ export default function TheoryTestPage() {
   const currentQuestion = testData.questions[currentQuestionIndex];
   const totalQuestions = testData.questions.length;
 
-
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Left Sidebar - Question Navigation */}
-      <div className={`${collapseQuestions ? 'w-14' : 'w-64'} bg-white border-r border-gray-200 transition-all duration-300 flex flex-col`}>
+      <div
+        className={`${
+          collapseQuestions ? "w-14" : "w-64"
+        } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col`}
+      >
         {/* Sidebar Header */}
         <div className="border-b border-gray-200 p-4 flex items-center justify-between">
-          <div className={`${collapseQuestions ? 'hidden' : 'flex'} items-center`}>
+          <div
+            className={`${collapseQuestions ? "hidden" : "flex"} items-center`}
+          >
             <FileQuestion size={18} className="text-purple-600 mr-2" />
             <span className="font-semibold text-sm">Questions</span>
           </div>
-          <button 
-            onClick={() => setCollapseQuestions(!collapseQuestions)} 
+          <button
+            onClick={() => setCollapseQuestions(!collapseQuestions)}
             className="p-1 rounded hover:bg-gray-100"
-            aria-label={collapseQuestions ? "Expand questions panel" : "Collapse questions panel"}
+            aria-label={
+              collapseQuestions
+                ? "Expand questions panel"
+                : "Collapse questions panel"
+            }
           >
-            <ChevronDown 
-              size={18} 
-              className={`text-gray-500 transform ${collapseQuestions ? 'rotate-90' : ''}`} 
+            <ChevronDown
+              size={18}
+              className={`text-gray-500 transform ${
+                collapseQuestions ? "rotate-90" : ""
+              }`}
             />
           </button>
         </div>
-        
+
         {/* Question List */}
         <div className="flex-1 overflow-y-auto p-2">
           {testData.questions.map((question, index) => {
             const isAnswered = !!userAnswers[question.id];
             const isFlagged = flaggedQuestions.has(question.id);
             const isActive = index === currentQuestionIndex;
-            
+
             return (
               <button
                 key={question.id}
                 onClick={() => goToQuestion(index)}
                 className={cn(
                   "w-full text-left py-3 px-2 mb-1 rounded-lg text-sm relative group transition-all",
-                  isActive ? "bg-purple-50 text-purple-900" : "hover:bg-gray-50",
+                  isActive
+                    ? "bg-purple-50 text-purple-900"
+                    : "hover:bg-gray-50",
                   collapseQuestions ? "justify-center" : "justify-between"
                 )}
               >
@@ -232,44 +261,62 @@ export default function TheoryTestPage() {
                   {isAnswered ? (
                     <CheckCircle size={16} className="text-green-600 mr-2" />
                   ) : (
-                    <span className={`flex items-center justify-center w-5 h-5 rounded-full mr-2 
-                      ${isActive ? 'bg-purple-200 text-purple-900' : 'bg-gray-200 text-gray-700'}`}>
+                    <span
+                      className={`flex items-center justify-center w-5 h-5 rounded-full mr-2 
+                      ${
+                        isActive
+                          ? "bg-purple-200 text-purple-900"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
                       {index + 1}
                     </span>
                   )}
                   {!collapseQuestions && (
-                    <span className={`truncate ${isActive ? "font-medium" : ""}`}>
-                      {question.content.length > 30 
-                        ? question.content.substring(0, 30) + "..." 
+                    <span
+                      className={`truncate ${isActive ? "font-medium" : ""}`}
+                    >
+                      {question.content.length > 30
+                        ? question.content.substring(0, 30) + "..."
                         : question.content}
                     </span>
                   )}
                 </div>
-                
+
                 {isFlagged && !collapseQuestions && (
-                  <Flag size={14} className="text-yellow-600 ml-2 flex-shrink-0" />
+                  <Flag
+                    size={14}
+                    className="text-yellow-600 ml-2 flex-shrink-0"
+                  />
                 )}
-                
+
                 {isFlagged && collapseQuestions && (
-                  <Flag size={14} className="text-yellow-600 absolute top-1 right-1" />
+                  <Flag
+                    size={14}
+                    className="text-yellow-600 absolute top-1 right-1"
+                  />
                 )}
               </button>
             );
           })}
         </div>
-        
+
         {/* Timer */}
         <div className="p-3 border-t border-gray-200 flex justify-center">
           {timeRemaining !== null ? (
-            <div className={cn(
-              "font-mono font-bold text-center",
-              isTimeWarning ? "text-red-600" : "text-gray-800",
-              collapseQuestions ? "text-sm" : "text-xl"
-            )}>
+            <div
+              className={cn(
+                "font-mono font-bold text-center",
+                isTimeWarning ? "text-red-600" : "text-gray-800",
+                collapseQuestions ? "text-sm" : "text-xl"
+              )}
+            >
               {formatTime(timeRemaining)}
             </div>
           ) : (
-            <div className={collapseQuestions ? "text-sm" : "text-base"}>No Time Limit</div>
+            <div className={collapseQuestions ? "text-sm" : "text-base"}>
+              No Time Limit
+            </div>
           )}
         </div>
       </div>
@@ -288,36 +335,39 @@ export default function TheoryTestPage() {
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               </button>
               <div>
-                <h1 className="text-lg font-bold text-gray-800">{testData.test.title}</h1>
+                <h1 className="text-lg font-bold text-gray-800">
+                  {testData.test.title}
+                </h1>
                 <div className="flex items-center text-sm text-gray-500">
                   <span className="mr-3">Theory Test</span>
                   <span>Year: {testData.test.year}</span>
-                  {testData.test.selectedTopics && testData.test.selectedTopics.length > 0 && (
-                    <div className="ml-4 flex flex-wrap gap-1">
-                      {testData.test.selectedTopics.map((topic, i) => (
-                        <span
-                          key={i}
-                          className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded-full"
-                        >
-                          {topic}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {testData.test.selectedTopics &&
+                    testData.test.selectedTopics.length > 0 && (
+                      <div className="ml-4 flex flex-wrap gap-1">
+                        {testData.test.selectedTopics.map((topic, i) => (
+                          <span
+                            key={i}
+                            className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded-full"
+                          >
+                            {topic}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2">
-              <button 
+              <button
                 onClick={saveProgress}
                 className="flex items-center px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50"
               >
                 <Save size={16} className="mr-1.5" />
                 Save
               </button>
-              
-              <button 
+
+              <button
                 onClick={handleFinishTest}
                 className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
               >
@@ -326,7 +376,7 @@ export default function TheoryTestPage() {
             </div>
           </div>
         </header>
-        
+
         {/* Question Content */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm">
@@ -337,7 +387,9 @@ export default function TheoryTestPage() {
                   Question {currentQuestionIndex + 1} of {totalQuestions}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-purple-600">{currentQuestion.points}</span>
+                  <span className="font-medium text-purple-600">
+                    {currentQuestion.points}
+                  </span>
                   {currentQuestion.topic && (
                     <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
                       {currentQuestion.topic}
@@ -345,37 +397,43 @@ export default function TheoryTestPage() {
                   )}
                 </div>
               </div>
-              
-              <button 
+
+              <button
                 onClick={() => handleFlagQuestion(currentQuestion.id)}
                 className={cn(
                   "p-2 rounded-full",
-                  flaggedQuestions.has(currentQuestion.id) 
-                    ? "bg-yellow-100 text-yellow-700" 
+                  flaggedQuestions.has(currentQuestion.id)
+                    ? "bg-yellow-100 text-yellow-700"
                     : "text-gray-400 hover:bg-gray-100"
                 )}
-                aria-label={flaggedQuestions.has(currentQuestion.id) ? "Unflag question" : "Flag question"}
+                aria-label={
+                  flaggedQuestions.has(currentQuestion.id)
+                    ? "Unflag question"
+                    : "Flag question"
+                }
               >
                 <Flag size={18} />
               </button>
             </div>
-            
+
             {/* Question Content */}
             <div className="p-5">
-              <h3 className="text-lg font-medium mb-5">{currentQuestion.content}</h3>
-              
+              <h3 className="text-lg font-medium mb-5">
+                {currentQuestion.content}
+              </h3>
+
               {currentQuestion.image && (
                 <div className="mb-6 p-3 bg-gray-50 rounded-lg">
-                  <Image 
-                    src={currentQuestion.image} 
-                    alt="Question image" 
+                  <Image
+                    src={currentQuestion.image}
+                    alt="Question image"
                     className="max-h-64 object-contain mx-auto"
                     width={500}
                     height={500}
                   />
                 </div>
               )}
-              
+
               {/* Answer Text Area */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -383,38 +441,35 @@ export default function TheoryTestPage() {
                 </label>
                 <textarea
                   value={userAnswers[currentQuestion.id] || ""}
-                  onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                  onChange={(e) =>
+                    handleAnswerChange(currentQuestion.id, e.target.value)
+                  }
                   placeholder="Type your answer here..."
                   rows={10}
                   className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-y"
                 />
               </div>
-              
-              {/* Question Navigation */}
-              <div className="flex justify-between mt-6">
-                <button
-                  onClick={() => goToQuestion(Math.max(0, currentQuestionIndex - 1))}
-                  disabled={currentQuestionIndex === 0}
-                  className={`px-4 py-2 flex items-center rounded-lg text-sm font-medium ${
-                    currentQuestionIndex === 0 
-                      ? "text-gray-400 cursor-not-allowed" 
-                      : "border border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  <ArrowLeft size={16} className="mr-1" /> Previous
-                </button>
-                
-                <button
-                  onClick={() => goToQuestion(Math.min(totalQuestions - 1, currentQuestionIndex + 1))}
-                  disabled={currentQuestionIndex === totalQuestions - 1}
-                  className={`px-4 py-2 flex items-center rounded-lg text-sm font-medium ${
-                    currentQuestionIndex === totalQuestions - 1 
-                      ? "text-gray-400 cursor-not-allowed" 
-                      : "bg-purple-600 text-white hover:bg-purple-700"
-                  }`}
-                >
-                  Next <ArrowLeft size={16} className="ml-1 transform rotate-180" />
-                </button>
+
+              {/* Replace the old navigation with the new component */}
+              <div className="mt-6">
+                <TheoryQuestionNavigation
+                  currentQuestionIndex={currentQuestionIndex}
+                  totalQuestions={totalQuestions}
+                  questionId={currentQuestion.id}
+                  isFlagged={flaggedQuestions.has(currentQuestion.id)}
+                  onPrevious={() =>
+                    goToQuestion(Math.max(0, currentQuestionIndex - 1))
+                  }
+                  onNext={() => {
+                    if (currentQuestionIndex === totalQuestions - 1) {
+                      handleFinishTest();
+                    } else {
+                      goToQuestion(currentQuestionIndex + 1);
+                    }
+                  }}
+                  onFlag={handleFlagQuestion}
+                  isLastQuestion={currentQuestionIndex === totalQuestions - 1}
+                />
               </div>
             </div>
           </div>

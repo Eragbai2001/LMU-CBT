@@ -1,8 +1,7 @@
 "use server";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
- // Import authOptions from your auth.ts file
-
+// Import authOptions from your auth.ts file
 
 const prisma = new PrismaClient();
 
@@ -29,8 +28,6 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-  
-
     const testId = params.id;
     console.log("Received testId:", testId);
 
@@ -52,6 +49,7 @@ export async function PUT(
       duration,
       year,
       questions,
+      testType
     } = body;
 
     // Update test + replace questions
@@ -63,6 +61,7 @@ export async function PUT(
         icon,
         isPopular,
         questionCount,
+        testType, // Add test type field
         durationOptions: {
           connectOrCreate: {
             where: { id: String(duration) },
@@ -89,21 +88,26 @@ export async function PUT(
         data: questions.map(
           (q: {
             text: string;
-            options: { text: string }[];
-            correctAnswer: string;
+            options?: { text: string; id: string }[];
+            correctAnswer?: string;
             solution?: string;
             topic?: string;
             image?: string;
             points?: number;
+            theoryAnswer?: string;
+            yearValue?: number;
           }) => ({
             content: q.text,
-            options: q.options.map((opt: { text: string }) => opt.text),
-            correctAnswer: q.correctAnswer,
+            // Only map options if they exist
+            options: q.options ? q.options.map(opt => opt.text) : [],
+            correctAnswer: q.correctAnswer || null,
             solution: q.solution || "",
             topic: q.topic || "",
             image: q.image || "",
             points: q.points || 1,
             testId: testId,
+            theoryAnswer: q.theoryAnswer || null,
+            yearValue: q.yearValue || year, // Use the question's yearValue or default to test year
           })
         ),
       });
@@ -113,7 +117,7 @@ export async function PUT(
   } catch (error) {
     console.error("❌ Failed to update test:", error);
     return NextResponse.json(
-      { error: "Failed to update test" },
+      { error: "Failed to update test: " + (error as Error).message },
       { status: 500 }
     );
   } finally {

@@ -35,6 +35,13 @@ export default function Layout({
   const router = useRouter();
   const pathname = usePathname();
 
+  // Calculate UI state
+  const showSidebar = pathname.startsWith("/dashboard");
+  const showHeader =
+    !pathname.includes("/dashboard/practice/test") &&
+    !pathname.includes("/dashboard/practice/theory");
+
+  // All hooks must be called at the top level, before any conditions
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -52,7 +59,6 @@ export default function Layout({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Close sidebar when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const sidebar = document.getElementById("mobile-sidebar");
@@ -69,14 +75,12 @@ export default function Layout({
     };
   }, [open]);
 
-  if (status === "unauthenticated") return null;
-  if (status === "loading")
-    return (
-      <div className="fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
-        <LoaderAnimation size="large" text={message} />
-      </div>
-    );
+  useEffect(() => {
+    console.log("Current pathname:", pathname);
+    console.log("Header visible:", showHeader);
+  }, [pathname]);
 
+  // Prepare menu links
   const menuLinks = [
     {
       label: "DASHBOARD",
@@ -105,22 +109,25 @@ export default function Layout({
     },
   ];
 
-  const showSidebar = pathname.startsWith("/dashboard");
-  const showHeader =
-    !pathname.includes("/dashboard/practice/test") &&
-    !pathname.includes("/dashboard/practice/theory");
+  // Use conditional rendering instead of early returns
+  if (status === "unauthenticated") {
+    return null;
+  }
 
-  useEffect(() => {
-    console.log("Current pathname:", pathname);
-    console.log("Header visible:", showHeader);
-  }, [pathname, showHeader]);
+  if (status === "loading") {
+    return (
+      <div className="fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+        <LoaderAnimation size="large" text={message} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* Overlay when sidebar is open on mobile */}
       {showSidebar && open && (
         <div
-          className="fixed inset-0  bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-opacity-50 z-40 lg:hidden"
           onClick={() => setOpen(false)}
         />
       )}
@@ -188,7 +195,7 @@ export default function Layout({
         <div className="flex flex-col flex-1 overflow-auto">
           {/* Header for larger screens */}
           {showHeader && (
-            <div className="hidden lg:block  w-full  px-7">
+            <div className="hidden lg:block w-full px-7">
               <DashboardHeader />
               {/* Main content */}
             </div>
@@ -196,7 +203,6 @@ export default function Layout({
           <main className={`${showHeader ? "px-10" : "p-0"}`}>{children}</main>
         </div>
       </div>
-      {/* Profile card */}
     </div>
   );
 }

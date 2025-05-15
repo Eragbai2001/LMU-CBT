@@ -100,7 +100,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Build where conditions for questions based on topics and year
-    const whereConditions: any = {
+    const whereConditions: {
+      testId: string;
+      topic?: { in: string[] };
+      yearValue?: number;
+    } = {
       testId: testId,
     };
 
@@ -127,6 +131,7 @@ export async function GET(request: NextRequest) {
         points: true,
         topic: true,
         theoryAnswer: true,
+        solution: true, // Also select the solution field
       },
     });
 
@@ -147,6 +152,8 @@ export async function GET(request: NextRequest) {
         image: q.image,
         points: q.points,
         topic: q.topic,
+        theoryAnswer: q.theoryAnswer, // Include the reference answer in response
+        solution: q.solution, // Include the solution in response
       })),
       sessionId: session?.id,
     };

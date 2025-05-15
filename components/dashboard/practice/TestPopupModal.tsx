@@ -32,6 +32,13 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
 
   const isTheoryTest = test.testType === "theory";
 
+  // Automatically set duration to "no-time" for theory tests
+  useEffect(() => {
+    if (isTheoryTest) {
+      setSelectedDuration("no-time");
+    }
+  }, [isTheoryTest]);
+
   // Enhanced availableTopics logic with debug and fallback
   const availableTopics = useMemo(() => {
     // Log available topics data for debugging
@@ -72,20 +79,24 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
   };
 
   const handleStartTest = () => {
-    if (!selectedYear || !selectedDuration) return;
+    // For theory tests, only require year selection
+    // For objective tests, require both year and duration
+    if (!selectedYear || (!isTheoryTest && !selectedDuration)) return;
 
     setLoading(true);
 
     const topicQuery = selectedTopics
       .map((t) => `topic=${encodeURIComponent(t)}`)
       .join("&");
-    const durationQuery =
-      selectedDuration === "no-time" ? "no-time" : selectedDuration;
+      
+    // Always use "no-time" for theory tests
+    const durationQuery = isTheoryTest 
+      ? "no-time" 
+      : (selectedDuration === "no-time" ? "no-time" : selectedDuration);
 
-    // FIX: Use correct routes that exist in your application
     const testPage = isTheoryTest
-      ? "/dashboard/practice/theory" // Make sure this route exists
-      : "/dashboard/practice/test"; // Make sure this route exists
+      ? "/dashboard/practice/theory"
+      : "/dashboard/practice/test";
 
     try {
       router.push(
@@ -183,42 +194,44 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
               </div>
             </div>
 
-            {/* Duration */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-600 mb-3">
-                Select Duration
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {/* No Timer Option */}
-                <button
-                  className={cn(
-                    "py-2 px-4 rounded-full text-sm font-medium transition-colors",
-                    selectedDuration === "no-time"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                  )}
-                  onClick={() => setSelectedDuration("no-time")}
-                >
-                  No Time
-                </button>
-
-                {/* Actual Duration Options */}
-                {test.durationOptions.map((d) => (
+            {/* Duration - only show for objective tests */}
+            {!isTheoryTest && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-600 mb-3">
+                  Select Duration
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {/* No Timer Option */}
                   <button
-                    key={d.id}
                     className={cn(
                       "py-2 px-4 rounded-full text-sm font-medium transition-colors",
-                      selectedDuration === d.id
+                      selectedDuration === "no-time"
                         ? "bg-blue-600 text-white"
                         : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                     )}
-                    onClick={() => setSelectedDuration(d.id)}
+                    onClick={() => setSelectedDuration("no-time")}
                   >
-                    {d.minutes} mins
+                    No Time
                   </button>
-                ))}
+
+                  {/* Actual Duration Options */}
+                  {test.durationOptions.map((d) => (
+                    <button
+                      key={d.id}
+                      className={cn(
+                        "py-2 px-4 rounded-full text-sm font-medium transition-colors",
+                        selectedDuration === d.id
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                      )}
+                      onClick={() => setSelectedDuration(d.id)}
+                    >
+                      {d.minutes} mins
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Year */}
             <div>
@@ -291,7 +304,7 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
             <button
               className={cn(
                 "w-full py-3 px-4 rounded-lg text-white font-medium transition-colors mt-4",
-                selectedDuration && selectedYear
+                (isTheoryTest ? selectedYear : (selectedDuration && selectedYear))
                   ? isTheoryTest
                     ? "bg-purple-600 hover:bg-purple-700"
                     : "bg-blue-600 hover:bg-blue-700"
@@ -300,7 +313,7 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
                   : "bg-blue-300 cursor-not-allowed"
               )}
               onClick={handleStartTest}
-              disabled={!selectedDuration || !selectedYear}
+              disabled={isTheoryTest ? !selectedYear : (!selectedDuration || !selectedYear)}
             >
               {loading
                 ? "Loading..."

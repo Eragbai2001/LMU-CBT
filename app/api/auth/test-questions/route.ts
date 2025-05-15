@@ -57,7 +57,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Build a more permissive where condition - now including year filtering
-    const whereConditions: any = {
+    const whereConditions: {
+      testId: string;
+      topic?: { in: string[] };
+      yearValue?: number;
+    } = {
       testId: testId,
     };
 
@@ -131,7 +135,7 @@ export async function GET(request: NextRequest) {
             selectedTopics: selectedTopics.length > 0 ? selectedTopics : null,
           },
           questions: questionsWithoutYearFilter,
-          sessionId: null,
+          sessionId: null as string | null, // Change type to allow string or null
         };
 
         if (yearId && (durationId || durationId === "no-time")) {
@@ -148,7 +152,7 @@ export async function GET(request: NextRequest) {
               data: sessionData,
             });
 
-            response.sessionId = session.id;
+            response.sessionId = session.id; // Now this assignment is valid
             console.log(`Created session with ID: ${session.id}`);
           } catch (err) {
             console.error("Error creating practice session:", err);
@@ -184,7 +188,7 @@ export async function GET(request: NextRequest) {
         selectedTopics: selectedTopics.length > 0 ? selectedTopics : null,
       },
       questions: questions,
-      sessionId: null, // Will be set below
+      sessionId: null as string | null, // Change type to allow string or null
     };
 
     // Create a practice session if necessary
@@ -202,7 +206,7 @@ export async function GET(request: NextRequest) {
           data: sessionData,
         });
 
-        response.sessionId = session.id;
+        response.sessionId = session.id; // Now this assignment is valid
         console.log(`Created session with ID: ${session.id}`);
       } catch (err) {
         console.error("Error creating practice session:", err);
