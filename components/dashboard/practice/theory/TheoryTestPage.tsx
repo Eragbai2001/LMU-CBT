@@ -198,22 +198,41 @@ export default function TheoryTestPage() {
     }
   };
 
-  const handleFinishTest = () => {
-    // Save completed test
+   const handleFinishTest = async () => {
     if (testData) {
-      const completedTest = {
-        testId: testData.test.id,
-        answers: userAnswers,
-        completedAt: new Date().toISOString(),
-      };
-
-      // Save to localStorage (could also send to API)
-      localStorage.setItem(
-        `completed_theory_${testData.test.id}`,
-        JSON.stringify(completedTest)
-      );
-
-      router.push("/dashboard/practice");
+      try {
+        const completedTest = {
+          testId: testData.test.id,
+          sessionId: testData.sessionId, // Pass the practice session ID
+          answers: userAnswers,
+          completedAt: new Date().toISOString(),
+        };
+  
+        // Save to localStorage as backup
+        localStorage.setItem(
+          `completed_theory_${testData.test.id}`,
+          JSON.stringify(completedTest)
+        );
+        
+        // Send to server API
+        const response = await fetch('/api/submit-test', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(completedTest)
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to save test results');
+        }
+        
+        // Redirect to results page
+        router.push(`/results?testId=${testData.test.id}&sessionId=${testData.sessionId}`);
+      } catch (error) {
+        console.error('Error saving test results:', error);
+        router.push('/dashboard/practice');
+      }
     }
   };
 

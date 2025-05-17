@@ -270,9 +270,11 @@ export default function TestPage() {
   };
 
   const handleFinishTest = async () => {
-    const hasUnanswered =
-      testData && testData.questions.length > Object.keys(userAnswers).length;
+    if (!testData) return;
 
+    // Keep the confirmation dialog for unanswered questions
+    const hasUnanswered =
+      testData.questions.length > Object.keys(userAnswers).length;
     if (
       hasUnanswered &&
       !window.confirm(
@@ -282,8 +284,47 @@ export default function TestPage() {
       return;
     }
 
-    console.log("Finishing test with answers:", userAnswers);
-    router.push("/dashboard");
+    try {
+      // Create the completed test data object
+      const completedTest = {
+        testId: testData.test.id,
+        sessionId: testData.sessionId, // Make sure this exists in your TestData interface
+        answers: userAnswers,
+        completedAt: new Date().toISOString(),
+        userId: testData.test.id,
+      };
+
+      // Save to localStorage as backup
+      localStorage.setItem(
+        `completed_test_${testData.test.id}`,
+        JSON.stringify(completedTest)
+      );
+
+      // Send to server API
+      const response = await fetch("/api/submit-test", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(completedTest),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save test results");
+      }
+
+      // Get the response data to extract sessionId if needed
+      const responseData = await response.json();
+
+      // Redirect to results page
+      router.push(
+        `/results?testId=${testData.test.id}&sessionId=${responseData.sessionId}`
+      );
+    } catch (error) {
+      console.error("Error saving test results:", error);
+      // Fallback to dashboard if submission fails
+      router.push("/dashboard/practice");
+    }
   };
 
   // Check if test data is available and has questions
