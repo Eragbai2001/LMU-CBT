@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, User, Save, RefreshCw } from "lucide-react";
+import { Sparkles, Save, RefreshCw, Dice5 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,9 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { updateProfile } from "@/lib/actions";
-import { AvatarPicker } from "./avatar-picker";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 
@@ -34,7 +32,6 @@ const profileFormSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  avatarStyle: z.string(),
   avatarSeed: z.string(),
   // Make these fields explicitly required with default values
   notifications: z.boolean(),
@@ -49,25 +46,25 @@ interface ProfileFormProps {
   user: {
     name?: string;
     email?: string;
-    avatarStyle?: string;
     avatarSeed?: string;
   };
 }
 
 export function ProfileForm({ user }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("avatar");
   const [saved, setSaved] = useState(false);
+  const [currentAvatarSeed, setCurrentAvatarSeed] = useState(user?.avatarSeed || user?.name?.toLowerCase().replace(/\\s+/g, "") || "user");
+
+  // Initialize currentAvatarSeed
+  useEffect(() => {
+    setCurrentAvatarSeed(user?.avatarSeed || user?.name?.toLowerCase().replace(/\\s+/g, "") || "user");
+  }, [user?.avatarSeed, user?.name]);
 
   // Step 4: Define default values with the correct types
   const defaultValues: ProfileFormValues = {
     name: user?.name || "",
     email: user?.email || "",
-    avatarStyle: user?.avatarStyle || "adventurer",
-    avatarSeed:
-      user?.avatarSeed ||
-      user?.name?.toLowerCase().replace(/\s+/g, "") ||
-      "user",
+    avatarSeed: currentAvatarSeed,
     notifications: true, // Provide default values for all fields
     publicProfile: false,
   };
@@ -76,7 +73,19 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
+    values: { // ensure form is updated when currentAvatarSeed changes
+        name: user?.name || "",
+        email: user?.email || "",
+        avatarSeed: currentAvatarSeed,
+        notifications: defaultValues.notifications, 
+        publicProfile: defaultValues.publicProfile,
+    }
   });
+  
+  // Update form when currentAvatarSeed changes
+  useEffect(() => {
+    form.setValue("avatarSeed", currentAvatarSeed);
+  }, [currentAvatarSeed, form]);
 
   // Step 6: Create a properly typed submit handler
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
@@ -87,7 +96,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
       const result = await updateProfile({
         name: data.name,
         email: data.email,
-        avatarStyle: data.avatarStyle,
         avatarSeed: data.avatarSeed,
       });
 
@@ -107,6 +115,16 @@ export function ProfileForm({ user }: ProfileFormProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRandomizeAvatar = () => {
+    const newSeed = Math.random().toString(36).substring(2, 10);
+    setCurrentAvatarSeed(newSeed);
+    form.setValue("avatarSeed", newSeed); // Ensure form value is updated
+  };
+  
+  const getAvatarUrl = (seed: string) => {
+    return `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`;
   };
 
   // Achievement badges
@@ -129,51 +147,39 @@ export function ProfileForm({ user }: ProfileFormProps) {
             >
               <Card className="p-4 backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-0 shadow-lg">
                 <div className="space-y-4">
-                  <Tabs defaultValue="avatar" className="w-full">
-                    <TabsList className="grid grid-cols-1 h-auto gap-2">
-                      <TabsTrigger
-                        value="avatar"
-                        onClick={() => setActiveTab("avatar")}
-                        className={`flex items-center justify-start gap-2 py-3 ${
-                          activeTab === "avatar"
-                            ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
-                            : ""
-                        }`}
-                      >
-                        <User className="h-4 w-4" />
-                        <span>Avatar</span>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="account"
-                        onClick={() => setActiveTab("account")}
-                        className={`flex items-center justify-start gap-2 py-3 ${
-                          activeTab === "account"
-                            ? "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300"
-                            : ""
-                        }`}
-                      >
-                        <User className="h-4 w-4" />
-                        <span>Account</span>
-                      </TabsTrigger>
-                    </TabsList>
+                  <div className="flex flex-col items-center space-y-2">
+                    <img
+                      src={getAvatarUrl(currentAvatarSeed)}
+                      alt="Avatar preview"
+                      className="h-32 w-32 rounded-full object-cover border-4 border-purple-200 dark:border-purple-900 shadow-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleRandomizeAvatar}
+                      className="gap-2"
+                    >
+                      <Dice5 className="h-4 w-4" />
+                      Randomize
+                    </Button>
+                  </div>
 
-                    <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-yellow-500" />
-                        Your Achievements
-                      </h3>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {achievements.map((badge) => (
-                          <Badge
-                            key={badge.name}
-                            className={`${badge.color} text-white`}
-                          >
-                            {badge.icon} {badge.name}
-                          </Badge>
-                        ))}
-                      </div>
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-yellow-500" />
+                      Your Achievements
+                    </h3>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {achievements.map((badge) => (
+                        <Badge
+                          key={badge.name}
+                          className={`${badge.color} text-white`}
+                        >
+                          {badge.icon} {badge.name}
+                        </Badge>
+                      ))}
                     </div>
-                  </Tabs>
+                  </div>
                 </div>
               </Card>
             </motion.div>
@@ -181,158 +187,135 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
           {/* Main content */}
           <div className="md:col-span-3">
-            <Tabs
-              value={activeTab}
-              className="w-full"
-              onValueChange={setActiveTab}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
             >
-              <TabsContent value="avatar" className="mt-0">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-0 shadow-lg p-6">
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                          Your Avatar
-                        </h2>
-                        <Badge
-                          variant="outline"
-                          className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-0"
-                        >
-                          Express yourself
-                        </Badge>
-                      </div>
-                      <AvatarPicker
-                        form={form}
-                        defaultStyle={form.getValues("avatarStyle")}
-                        defaultSeed={form.getValues("avatarSeed")}
-                      />
-                    </div>
-                  </Card>
-                </motion.div>
-              </TabsContent>
+              <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-0 shadow-lg p-6">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      Account Settings
+                    </h2>
+                    <Badge
+                      variant="outline"
+                      className="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-0"
+                    >
+                      Personal info
+                    </Badge>
+                  </div>
 
-              <TabsContent value="account" className="mt-0">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-0 shadow-lg p-6">
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                          Account Settings
-                        </h2>
-                        <Badge
-                          variant="outline"
-                          className="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-0"
-                        >
-                          Personal info
-                        </Badge>
-                      </div>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Display Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Your name"
+                              {...field}
+                              className="bg-white dark:bg-gray-950"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            This is how others will see you in the platform.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                      <div className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Display Name</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Your name"
-                                  {...field}
-                                  className="bg-white dark:bg-gray-950"
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                This is how others will see you in the platform.
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="your.email@example.com"
+                              {...field}
+                              readOnly
+                              className="bg-white dark:bg-gray-950"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Your email address is used for notifications and
+                            login.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="your.email@example.com"
-                                  {...field}
-                                  readOnly
-                                  className="bg-white dark:bg-gray-950"
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                Your email address is used for notifications and
-                                login.
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                    <FormField
+                      control={form.control}
+                      name="avatarSeed"
+                      render={({ field }) => (
+                        <FormItem className="sr-only"> {/* Hidden from view but present in form */}
+                          <FormLabel>Avatar Seed</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                        <FormField
-                          control={form.control}
-                          name="notifications"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-white dark:bg-gray-950">
-                              <div className="space-y-0.5">
-                                <FormLabel className="text-base">
-                                  Notifications
-                                </FormLabel>
-                                <FormDescription>
-                                  Receive notifications about new assignments
-                                  and messages.
-                                </FormDescription>
-                              </div>
-                              <FormControl>
-                                <Switch
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
+                    <FormField
+                      control={form.control}
+                      name="notifications"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-white dark:bg-gray-950">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">
+                              Notifications
+                            </FormLabel>
+                            <FormDescription>
+                              Receive notifications about new assignments
+                              and messages.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
 
-                        <FormField
-                          control={form.control}
-                          name="publicProfile"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-white dark:bg-gray-950">
-                              <div className="space-y-0.5">
-                                <FormLabel className="text-base">
-                                  Public Profile
-                                </FormLabel>
-                                <FormDescription>
-                                  Allow other students to see your profile and
-                                  achievements.
-                                </FormDescription>
-                              </div>
-                              <FormControl>
-                                <Switch
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              </TabsContent>
-            </Tabs>
+                    <FormField
+                      control={form.control}
+                      name="publicProfile"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-white dark:bg-gray-950">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">
+                              Public Profile
+                            </FormLabel>
+                            <FormDescription>
+                              Allow other students to see your profile and
+                              achievements.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
           </div>
         </div>
 
@@ -340,7 +323,11 @@ export function ProfileForm({ user }: ProfileFormProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => form.reset(defaultValues)}
+            onClick={() => {
+              form.reset(defaultValues);
+              // Reset avatarSeed to its initial value from user prop or default
+              setCurrentAvatarSeed(user?.avatarSeed || user?.name?.toLowerCase().replace(/\\s+/g, "") || "user");
+            }}
             disabled={isLoading}
             className="gap-2"
           >

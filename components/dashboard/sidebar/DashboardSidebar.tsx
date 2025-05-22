@@ -83,7 +83,7 @@ export default function DashboardSidebar({
     >
       <SidebarBody className="justify-between">
         <div className="flex flex-1 flex-col">
-          <div className="flex items-center space-x-3 mb-10">
+          <div className="flex items-center space-x-3 mb-10 bg-orange-300">
             <SidebarLogo />
           </div>
 

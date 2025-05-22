@@ -57,7 +57,7 @@ export function LoginForm() {
             <GraduationCap className="h-6 w-6 text-primary" />
           </div>
           <div className="flex flex-1 flex-col">
-            <span className="font-bold text-lg">UniTest CBT</span>
+            <span className="font-bold text-lg text-nowrap">UniTest CBT</span>
             {/* Rest of your sidebar content */}
           </div>
         </div>

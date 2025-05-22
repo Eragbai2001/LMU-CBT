@@ -11,12 +11,14 @@ declare module "next-auth" {
   interface User {
     role?: "ADMIN" | "USER";
     id?: string;
+    enableAiAssistant?: boolean;
   }
 
   interface Session {
     user: {
       id: string;
       role: "ADMIN" | "USER";
+      enableAiAssistant: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -25,6 +27,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     role: "ADMIN" | "USER";
     id: string;
+    enableAiAssistant: boolean;
   }
 }
 
@@ -76,6 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             email: user.email,
             name: user.name ?? "Unknown User",
             role: user.role ?? "USER", // Include the role from the database
+            enableAiAssistant: user.enableAiAssistant ?? false, // Include AI assistant setting
           };
         } catch (error) {
           console.error("Authentication error:", error);
@@ -128,6 +132,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (dbUser) {
         user.role = dbUser.role;
         user.id = dbUser.id;
+        user.enableAiAssistant = dbUser.enableAiAssistant || false;
       }
 
       return true;
@@ -138,12 +143,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // This will run when the user signs in
         token.role = user.role || "USER";
         token.id = user.id ?? "";
+        token.enableAiAssistant = user.enableAiAssistant || false;
       } else if (!token.role) {
         // Fetch the user's role from the database for existing sessions
         const dbUser = await getUserFromDb(token.email as string);
         if (dbUser) {
           token.role = dbUser.role;
           token.id = dbUser.id;
+          token.enableAiAssistant = dbUser.enableAiAssistant || false;
         }
       }
       return token;
@@ -154,6 +161,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // Add role and id to the session
         session.user.role = token.role;
         session.user.id = token.id as string;
+        session.user.enableAiAssistant = token.enableAiAssistant || false;
       }
       return session;
     },

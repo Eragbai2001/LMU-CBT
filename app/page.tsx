@@ -20,7 +20,7 @@ export default function Home() {
             <div className="bg-primary/10 p-2 rounded-full backdrop-blur-sm">
               <GraduationCap className="h-6 w-6 text-primary" />
             </div>
-            <h1 className="text-xl font-bold">UniTest CBT</h1>
+            <h1 className="text-xl font-bold text-nowrap">UniTest CBT</h1>
           </div>
 
           {/* Auth Buttons */}
@@ -42,7 +42,7 @@ export default function Home() {
               <div className="inline-block px-3 py-1 text-sm text-primary bg-primary/10 rounded-full">
                 University Assessment Platform
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-black">
                 Elevate Your Academic Assessment Experience
               </h2>
               <p className="text-lg text-muted-foreground">

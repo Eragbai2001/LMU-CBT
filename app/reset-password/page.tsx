@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
             <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-4">
               <GraduationCap className="h-6 w-6 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold mb-1">UniTest CBT</h1>
+            <h1 className="text-2xl font-bold mb-1 text-nowrap">UniTest CBT</h1>
             <h2 className="text-2xl font-semibold mb-2">Reset Password</h2>
             <p className="text-gray-500 text-center">
               {!token

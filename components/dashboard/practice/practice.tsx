@@ -8,14 +8,12 @@ import {
   Edit,
   Trash2,
   Plus,
-  Info,
 } from "lucide-react";
 import { Sigma, FlaskConical, BookOpen, Brain } from "lucide-react";
 import TestPopupModal from "./TestPopupModal";
 import ConfirmationModal from "./ConfirmationModal";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react"; // Import useSession for role check
-import { Button } from "@/components/ui/button";
 
 interface Test {
   id: string | number;
@@ -45,6 +43,7 @@ export default function PracticeTests() {
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [testToDelete, setTestToDelete] = useState<Test | null>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN";
@@ -98,7 +97,7 @@ useEffect(() => {
         return res.json();
       })
       .then((data) => {
-        console.log("Tests from API:", data);
+        console.log("Tests from API:", data); // Enhanced logging to check testType values
         setTests(data);
         setLoading(false);
       })
@@ -106,12 +105,15 @@ useEffect(() => {
         console.error("Error fetching practice tests:", err);
         setError("Failed to load practice tests"); // Set error state here
         setLoading(false);
+        // Set tests to empty array on error
+        setTests([]);
       });
   }, []);
 
 
-  const displayedTests = showAll ? tests : tests.slice(0, 4);
-  const hasMoreTests = tests.length > 4;
+  // Safe array operations
+  const displayedTests = showAll ? tests : (Array.isArray(tests) ? tests.slice(0, 4) : []);
+  const hasMoreTests = Array.isArray(tests) && tests.length > 4;
 
 
    if (error) {
@@ -200,7 +202,7 @@ useEffect(() => {
                 }`}
               >
                 {/* Removed console.log to fix the error */}
-                {test.testType === "theory" ? "Theory" : "Objective"}
+                {test.testType === "theory" ? "Theory" : "MCQ"}
               </span>
             </div>
 
@@ -243,6 +245,18 @@ useEffect(() => {
             />
           </button>
         )}
+        
+        <button
+          onClick={() => setIsUploadModalOpen(true)}
+          className="flex items-center justify-center py-2.5 px-6 bg-green-600 text-white font-medium rounded-lg text-sm shadow-sm hover:bg-green-700 transition-all hover:shadow cursor-pointer group"
+        >
+          <span>Generate Test from Notes</span>
+          <FileUp
+            size={16}
+            className="ml-2 transition-transform group-hover:scale-110 duration-300"
+          />
+        </button>
+        
         {isAdmin && (
           <button
             onClick={() => router.push("/create-test")}
@@ -261,6 +275,16 @@ useEffect(() => {
         <TestPopupModal
           test={selectedTest}
           onClose={() => setSelectedTest(null)}
+        />
+      )}
+
+      {isUploadModalOpen && (
+        <UploadNotesModal 
+          onClose={() => setIsUploadModalOpen(false)}
+          onTestCreated={(newTest) => {
+            setTests(prev => [...prev, newTest]);
+            setIsUploadModalOpen(false);
+          }}
         />
       )}
 

@@ -16,6 +16,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 
 import TheoryQuestion from "./TheoryQuestion";
 
@@ -49,6 +50,7 @@ interface TheoryTestData {
 export default function TheoryTestPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
 
   const testId = searchParams.get("testId");
   const yearId = searchParams.get("yearId");
@@ -60,12 +62,12 @@ export default function TheoryTestPage() {
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const [userCanUseAi, setUserCanUseAi] = useState(false);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(
     new Set()
   );
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [activeTab, setActiveTab] = useState("question");
   const [showReferencePoints, setShowReferencePoints] = useState(false);
 
   const totalQuestions = testData?.questions.length || 0;
@@ -91,6 +93,12 @@ export default function TheoryTestPage() {
     };
   }, []);
 
+  // Check localStorage for AI setting on component mount
+  useEffect(() => {
+    const aiEnabled = localStorage.getItem('enableAiAssistant');
+    setUserCanUseAi(aiEnabled === 'true');
+  }, []);
+
   // Fetch test data with offline support
   useEffect(() => {
     if (!testId) return;
@@ -98,6 +106,8 @@ export default function TheoryTestPage() {
     const fetchData = async () => {
       setLoading(true);
 
+      // AI assistant setting is now handled by the local storage effect above
+      
       // Try to get data from cache first
       const cacheKey = `theory_test_${testId}_${yearId}`;
       const cachedData = localStorage.getItem(cacheKey);
@@ -161,7 +171,7 @@ export default function TheoryTestPage() {
     };
 
     fetchData();
-  }, [testId, yearId]);
+  }, [testId, yearId, session]);
 
   // Save answers to local storage whenever they change
   useEffect(() => {
@@ -215,7 +225,7 @@ export default function TheoryTestPage() {
         );
         
         // Send to server API
-        const response = await fetch('/api/submit-test', {
+        const response = await fetch('/api/submit-theory-test', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -224,14 +234,24 @@ export default function TheoryTestPage() {
         });
         
         if (!response.ok) {
-          throw new Error('Failed to save test results');
+          // Try to parse error message from server if available
+          let errorDetails = 'Failed to save test results';
+          try {
+            const errorData = await response.json();
+            errorDetails = errorData.message || errorDetails;
+          } catch (e) {
+            // Ignore if response is not JSON
+          }
+          throw new Error(errorDetails);
         }
         
-        // Redirect to results page
-        router.push(`/results?testId=${testData.test.id}&sessionId=${testData.sessionId}`);
+        // Redirect to the new theory results page
+        router.push(`/dashboard/practice/theory/results?testId=${testData.test.id}&sessionId=${testData.sessionId}`);
       } catch (error) {
-        console.error('Error saving test results:', error);
-        router.push('/dashboard/practice');
+        console.error('Error saving theory test results:', error);
+        // Optionally, redirect to a generic error page or show an in-page error message
+        // For now, redirecting to practice page as a fallback
+        router.push('/dashboard/practice/theory?error=submissionFailed'); 
       }
     }
   };
@@ -387,13 +407,15 @@ export default function TheoryTestPage() {
                   : "Flag"}
               </button>
 
-              <button
-                onClick={toggleAIPanel}
-                className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-blue-50 text-blue-700 hover:bg-blue-100"
-              >
-                <Lightbulb size={14} />
-                AI Help
-              </button>
+              {userCanUseAi && (
+                <button
+                  onClick={toggleAIPanel}
+                  className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-blue-50 text-blue-700 hover:bg-blue-100"
+                >
+                  <Lightbulb size={14} />
+                  AI Help
+                </button>
+              )}
             </div>
           </div>
 
@@ -409,7 +431,7 @@ export default function TheoryTestPage() {
               <div
                 className={cn(
                   "h-2 rounded-full transition-all duration-300",
-                  progressPercentage > 75 ? "bg-green-500" : "bg-purple-600"
+                  progressPercentage > 75 ? "bg-green-500" : "bg-blue-600"
                 )}
                 style={{ width: `${progressPercentage}%` }}
               ></div>
@@ -418,64 +440,34 @@ export default function TheoryTestPage() {
         </div>
       </div>
 
-      {/* Main content with tabs */}
-
+      {/* Main content - Combined question and answer */}
       <div className="max-w-6xl mx-auto px-4 py-6 flex flex-col lg:flex-row w-full">
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Tab navigation */}
-          <div className="bg-white ">
-            <div className="px-6 py-2">
-              <div className="flex">
-                <button
-                  onClick={() => setActiveTab("question")}
-                  className={cn(
-                    "px-4 py-3 font-medium text-sm border-b-2 transition-colors",
-                    activeTab === "question"
-                      ? "border-purple-600 text-purple-700"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  )}
-                >
-                  Question
-                </button>
-                <button
-                  onClick={() => setActiveTab("answer")}
-                  className={cn(
-                    "px-4 py-3 font-medium text-sm border-b-2 transition-colors ml-8",
-                    activeTab === "answer"
-                      ? "border-purple-600 text-purple-700"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  )}
-                >
-                  Your Answer
-                </button>
-              </div>
-            </div>
-          </div>
-
           <div className="flex-1 overflow-auto">
-            <div className=" p-6">
-              {activeTab === "question" ? (
-                /* Question Content */
-                <TheoryQuestion question={currentQuestion} />
-              ) : (
-                /* Answer Editor with Preview Mode */
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                  <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-                    <h3 className="text-lg font-medium text-gray-800">
-                      Your Answer
-                    </h3>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setIsPreviewMode(!isPreviewMode)}
-                        className="flex items-center gap-1 text-sm py-1 px-3 rounded-md bg-gray-50 text-gray-700 hover:bg-gray-100"
-                      >
-                        {isPreviewMode ? (
-                          <EyeOff size={14} />
-                        ) : (
-                          <Eye size={14} />
-                        )}
-                        {isPreviewMode ? "Edit" : "Preview"}
-                      </button>
+            <div className="p-6">
+              {/* Question Content */}
+              <TheoryQuestion question={currentQuestion} />
+              
+              {/* Answer Editor with Preview Mode */}
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden mt-6">
+                <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+                  <h3 className="text-lg font-medium text-gray-800">
+                    Your Answer
+                  </h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setIsPreviewMode(!isPreviewMode)}
+                      className="flex items-center gap-1 text-sm py-1 px-3 rounded-md bg-gray-50 text-gray-700 hover:bg-gray-100"
+                    >
+                      {isPreviewMode ? (
+                        <EyeOff size={14} />
+                      ) : (
+                        <Eye size={14} />
+                      )}
+                      {isPreviewMode ? "Edit" : "Preview"}
+                    </button>
+                    
+                    {userCanUseAi && (
                       <button
                         onClick={toggleAIPanel}
                         className="flex items-center gap-1 text-sm py-1 px-3 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100"
@@ -483,112 +475,112 @@ export default function TheoryTestPage() {
                         <Lightbulb size={14} />
                         AI Help
                       </button>
-                    </div>
-                  </div>
-
-                  <div className="p-4">
-                    {isPreviewMode ? (
-                      <div className="min-h-[300px] prose prose-purple max-w-none p-3 bg-gray-50 rounded-lg">
-                        {currentQuestion?.solution ? (
-                          <div
-                            dangerouslySetInnerHTML={{
-                              __html: currentQuestion.solution.replace(
-                                /\n/g,
-                                "<br/>"
-                              ),
-                            }}
-                          />
-                        ) : (
-                          <p className="text-gray-400 italic">
-                            No solution available
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <textarea
-                        value={userAnswers[currentQuestion?.id || ""] || ""}
-                        onChange={(e) =>
-                          currentQuestion?.id &&
-                          handleAnswerChange(currentQuestion.id, e.target.value)
-                        }
-                        placeholder="Type your answer here..."
-                        rows={10}
-                        className="w-full min-h-[300px] p-4 border rounded-lg border-gray-200 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none resize-y"
-                      />
                     )}
-
-                    <AnswerFeedbackDisplay
-                      answerFeedback={answerFeedback}
-                      isChecking={isChecking}
-                    />
-
-                    {showConfirmation && (
-                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-center text-green-700">
-                          <CheckCircle size={16} className="mr-2" />
-                          <p>Your answer has been saved successfully.</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {currentQuestion?.theoryAnswer && (
-                      <div className="mt-4">
-                        <button
-                          onClick={() =>
-                            setShowReferencePoints(!showReferencePoints)
-                          }
-                          className="text-sm text-blue-600 hover:underline flex items-center"
-                        >
-                          <HelpCircle size={14} className="mr-1" />
-                          {showReferencePoints
-                            ? "Hide reference points"
-                            : "View reference points"}
-                        </button>
-
-                        {showReferencePoints && (
-                          <div className="mt-2 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                            <h4 className="font-medium text-blue-800 mb-2">
-                              Reference Points
-                            </h4>
-                            <div className="text-sm text-blue-700 whitespace-pre-line">
-                              {currentQuestion.theoryAnswer}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="flex justify-end mt-4 gap-2">
-                      <button
-                        onClick={handleCheckAnswer}
-                        disabled={
-                          !currentQuestion?.id ||
-                          !userAnswers[currentQuestion?.id] ||
-                          !userAnswers[currentQuestion?.id]?.trim()
-                        }
-                        className={cn(
-                          "flex items-center gap-1 px-4 py-2 rounded-lg",
-                          !currentQuestion?.id ||
-                            !userAnswers[currentQuestion?.id] ||
-                            !userAnswers[currentQuestion?.id]?.trim()
-                            ? "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
-                            : "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
-                        )}
-                      >
-                        <CheckCircle size={16} />
-                        Check My Answer
-                      </button>
-                      <button
-                        onClick={handleSaveAnswer}
-                        className="flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
-                      >
-                        <Save size={16} />
-                        Save Draft
-                      </button>
-                    </div>
                   </div>
                 </div>
-              )}
+
+                <div className="p-4">
+                  {isPreviewMode ? (
+                    <div className="min-h-[300px] prose prose-blue max-w-none p-3 bg-gray-50 rounded-lg">
+                      {currentQuestion?.solution ? (
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: currentQuestion.solution.replace(
+                              /\n/g,
+                              "<br/>"
+                            ),
+                          }}
+                        />
+                      ) : (
+                        <p className="text-gray-400 italic">
+                          No solution available
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <textarea
+                      value={userAnswers[currentQuestion?.id || ""] || ""}
+                      onChange={(e) =>
+                        currentQuestion?.id &&
+                        handleAnswerChange(currentQuestion.id, e.target.value)
+                      }
+                      placeholder="Type your answer here..."
+                      rows={10}
+                      className="w-full min-h-[300px] p-4 border rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none resize-y"
+                    />
+                  )}
+
+                  <AnswerFeedbackDisplay
+                    answerFeedback={answerFeedback}
+                    isChecking={isChecking}
+                  />
+
+                  {showConfirmation && (
+                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center text-green-700">
+                        <CheckCircle size={16} className="mr-2" />
+                        <p>Your answer has been saved successfully.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {currentQuestion?.theoryAnswer && (
+                    <div className="mt-4">
+                      <button
+                        onClick={() =>
+                          setShowReferencePoints(!showReferencePoints)
+                        }
+                        className="text-sm text-blue-600 hover:underline flex items-center"
+                      >
+                        <HelpCircle size={14} className="mr-1" />
+                        {showReferencePoints
+                          ? "Hide reference points"
+                          : "View reference points"}
+                      </button>
+
+                      {showReferencePoints && (
+                        <div className="mt-2 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                          <h4 className="font-medium text-blue-800 mb-2">
+                            Reference Points
+                          </h4>
+                          <div className="text-sm text-blue-700 whitespace-pre-line">
+                            {currentQuestion.theoryAnswer}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex justify-end mt-4 gap-2">
+                    <button
+                      onClick={handleCheckAnswer}
+                      disabled={
+                        !currentQuestion?.id ||
+                        !userAnswers[currentQuestion?.id] ||
+                        !userAnswers[currentQuestion?.id]?.trim()
+                      }
+                      className={cn(
+                        "flex items-center gap-1 px-4 py-2 rounded-lg",
+                        !currentQuestion?.id ||
+                          !userAnswers[currentQuestion?.id] ||
+                          !userAnswers[currentQuestion?.id]?.trim()
+                          ? "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
+                          : "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+                      )}
+                    >
+                      <CheckCircle size={16} />
+                      Check My Answer
+                    </button>
+                    <button
+                      onClick={handleSaveAnswer}
+                      className="flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    >
+                      <Save size={16} />
+                      Save Draft
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -613,6 +605,9 @@ export default function TheoryTestPage() {
         </div>
       </div>
 
+      {/* Add padding at the bottom to prevent footer overlap */}
+      <div className="pb-20"></div>
+
       {/* Enhanced Question Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-20 shadow-md">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
@@ -630,64 +625,83 @@ export default function TheoryTestPage() {
             Previous
           </button>
 
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto px-2 max-w-[50%] scrollbar-hide">
             {(() => {
-              // Determine start index to center current question when possible
-              let startIdx = Math.max(0, currentQuestionIndex - 2);
-
-              // Adjust if we're near the end to always show 5 buttons when possible
-              if (
-                totalQuestions >= 5 &&
-                currentQuestionIndex > totalQuestions - 3
-              ) {
-                startIdx = Math.max(0, totalQuestions - 5);
+              // Calculate visible page range based on current position
+              const totalPages = totalQuestions;
+              const currentPage = currentQuestionIndex + 1;
+              
+              // Always show first and last page
+              const showFirstPage = true;
+              const showLastPage = true;
+              
+              // Show 3 pages around current page when we have many questions
+              const pagesAroundCurrent = totalPages > 10 ? 3 : 5;
+              
+              // Calculate start and end of pages to show
+              let startPage = Math.max(1, currentPage - Math.floor(pagesAroundCurrent / 2));
+              let endPage = Math.min(totalPages, startPage + pagesAroundCurrent - 1);
+              
+              // Adjust if we're near the end
+              if (endPage === totalPages) {
+                startPage = Math.max(1, endPage - pagesAroundCurrent + 1);
+              }
+              
+              // Generate array of page numbers to display
+              const pages = [];
+              
+              // Add first page if not included in normal range
+              if (showFirstPage && startPage > 1) {
+                pages.push(1);
+                if (startPage > 2) pages.push('ellipsis-start');
+              }
+              
+              // Add pages around current page
+              for (let i = startPage; i <= endPage; i++) {
+                pages.push(i);
+              }
+              
+              // Add last page if not included in normal range
+              if (showLastPage && endPage < totalPages) {
+                if (endPage < totalPages - 1) pages.push('ellipsis-end');
+                pages.push(totalPages);
               }
 
-              return Array.from(
-                { length: Math.min(totalQuestions, 5) },
-                (_, i) => {
-                  const questionNum = startIdx + i;
-                  if (questionNum >= totalQuestions) return null;
-
-                  const qId = testData?.questions[questionNum]?.id;
-                  const hasAnswer = qId && !!userAnswers[qId];
-                  const isFlagged = qId && flaggedQuestions.has(qId);
-                  const isCurrent = questionNum === currentQuestionIndex;
-
+              return pages.map((page, index) => {
+                if (page === 'ellipsis-start' || page === 'ellipsis-end') {
                   return (
-                    <button
-                      key={questionNum}
-                      onClick={() => goToQuestion(questionNum)}
-                      className={cn(
-                        "w-10 h-10 flex items-center justify-center rounded-lg text-sm",
-                        isCurrent
-                          ? "bg-purple-600 text-white"
-                          : hasAnswer
-                          ? "bg-green-100 text-green-800 border border-green-200"
-                          : isFlagged
-                          ? "bg-yellow-50 text-yellow-800 border border-yellow-200"
-                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                      )}
-                    >
-                      {questionNum + 1}
-                    </button>
+                    <span key={`ellipsis-${index}`} className="flex items-center justify-center text-gray-400">
+                      ...
+                    </span>
                   );
                 }
-              );
-            })()}
+                
+                const questionNum = Number(page) - 1;
+                const qId = testData?.questions[questionNum]?.id;
+                const hasAnswer = qId && !!userAnswers[qId] && userAnswers[qId].trim() !== '';
+                const isFlagged = qId && flaggedQuestions.has(qId);
+                const isCurrent = questionNum === currentQuestionIndex;
 
-            {totalQuestions > 5 &&
-              currentQuestionIndex < totalQuestions - 3 && (
-                <>
-                  <span className="flex items-center text-gray-400">...</span>
+                return (
                   <button
-                    onClick={() => goToQuestion(totalQuestions - 1)}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg text-sm bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    key={questionNum}
+                    onClick={() => goToQuestion(questionNum)}
+                    className={cn(
+                      "min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm",
+                      isCurrent
+                        ? "bg-blue-600 text-white"
+                        : hasAnswer
+                        ? "bg-green-100 text-green-800 border border-green-200"
+                        : isFlagged
+                        ? "bg-yellow-50 text-yellow-800 border border-yellow-200"
+                        : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    )}
                   >
-                    {totalQuestions}
+                    {page}
                   </button>
-                </>
-              )}
+                );
+              });
+            })()}
           </div>
 
           <button
@@ -702,7 +716,7 @@ export default function TheoryTestPage() {
               "flex items-center gap-1 px-4 py-2 rounded-lg",
               currentQuestionIndex === totalQuestions - 1
                 ? "bg-green-600 text-white hover:bg-green-700"
-                : "bg-purple-600 text-white hover:bg-purple-700"
+                : "bg-blue-600 text-white hover:bg-blue-700"
             )}
           >
             {currentQuestionIndex === totalQuestions - 1

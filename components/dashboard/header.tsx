@@ -46,13 +46,13 @@ export default function UserProfileWithCard() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-4 mb-3">
+    <div className="bg-white rounded-lg shadow-sm border p-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Avatar */}
-          <div className="relative h-14 w-14 rounded-full overflow-hidden border-2 border-gray-100 shadow-sm">
+          <div className="relative h-11 w-11 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-600 shadow-sm">
             {loading ? (
-              <div className="w-full h-full bg-gray-200 animate-pulse rounded-full"></div>
+              <div className="w-full h-full bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full"></div>
             ) : (
               <img
                 src={getAvatarUrl(user) || "/placeholder.svg"}
@@ -63,15 +63,15 @@ export default function UserProfileWithCard() {
           </div>
 
           {/* User info */}
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold flex flex-wrap items-center gap-1 sm:gap-2">
-              <span className="font-light text-base sm:text-lg text-gray-800">
+          <div className="flex flex-col">
+            <h1 className="text-lg sm:text-xl font-bold flex flex-wrap items-center gap-1 sm:gap-1.5">
+              <span className="font-light text-sm sm:text-md text-gray-700 dark:text-gray-300">
                 Hello,
               </span>
               {loading ? (
-                <span className="w-16 sm:w-24 h-5 sm:h-6 bg-gray-300 animate-pulse rounded"></span>
+                <span className="w-12 sm:w-20 h-4 sm:h-5 bg-gray-300 dark:bg-gray-600 animate-pulse rounded"></span>
               ) : user ? (
-                <span className="text-gray-900 truncate max-w-xs">
+                <span className="text-gray-800 dark:text-white truncate max-w-xs text-lg leading-5">
                   {user.displayName ||
                     user.name ||
                     user.email?.split("@")[0] ||
@@ -83,18 +83,18 @@ export default function UserProfileWithCard() {
             </h1>
 
             <p className="text-gray-500 font-light text-sm sm:text-base py-1">
-              Lets learn something new today
+              Let's learn something new today
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="p-2 rounded-full hover:bg-gray-100">
-            <Bell className="h-5 w-5 text-gray-500" />
+          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+            <Bell className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
           <Link
             href="/dashboard/profile"
-            className="hidden sm:block text-sm text-blue-600 hover:text-blue-700 transition-colors"
+            className="hidden sm:inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 dark:text-purple-300 dark:bg-purple-800 dark:hover:bg-purple-700 transition-colors"
           >
             Edit Profile
           </Link>

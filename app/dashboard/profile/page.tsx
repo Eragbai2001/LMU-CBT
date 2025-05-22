@@ -2,7 +2,7 @@ import { ProfileForm } from "@/components/profile-form";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { ThemeSelector } from "@/components/theme-selector";
+import AISettingsToggle from "@/components/dashboard/settings/AISettingsToggle";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -13,7 +13,6 @@ export default async function ProfilePage() {
 
   // Get user profile from database
   const avatarData = {
-    avatarStyle: "adventurer",
     avatarSeed: (session.user.name || "user").toLowerCase().replace(/\s+/g, ""),
   };
 
@@ -21,14 +20,9 @@ export default async function ProfilePage() {
     const userProfile = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
-        avatarStyle: true,
         avatarSeed: true,
       },
     });
-
-    if (userProfile?.avatarStyle) {
-      avatarData.avatarStyle = userProfile.avatarStyle;
-    }
 
     if (userProfile?.avatarSeed) {
       avatarData.avatarSeed = userProfile.avatarSeed;
@@ -46,7 +40,7 @@ export default async function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-950 dark:to-gray-900 py-8">
+    <div className="min-h-screen py-8">
       <div className="container max-w-5xl px-4 mx-auto">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 inline-block">
@@ -58,7 +52,17 @@ export default async function ProfilePage() {
         </div>
 
         <ProfileForm user={profile} />
-        <ThemeSelector />
+        
+        <div className="mt-8">
+          <div className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-0 shadow-lg p-6 rounded-lg">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+              Application Settings
+            </h2>
+            <div className="space-y-4">
+              <AISettingsToggle />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
