@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, SessionProvider } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   Sidebar,
@@ -18,12 +18,14 @@ import {
   User,
   Moon,
   Menu,
+  FileText,
 } from "lucide-react";
 import { SidebarLogo } from "@/components/dashboard/sidebar/sidebar-logo";
 import CustomSignOut from "@/components/dashboard/sidebar/custom-signout";
 import LoaderAnimation from "@/components/Loader/loader-animation";
 
-export default function Layout({
+// Create a client component that uses useSession
+function DashboardLayoutContent({
   children,
   message = "Loading your content",
 }: {
@@ -92,29 +94,29 @@ export default function Layout({
 
   const menuLinks = [
     {
-      label: "DASHBOARD",
+      label: "Dashboard",
       href: "/dashboard",
-      icon: <LayoutDashboard size={20} className="text-[#3949AB]" />,
+      icon: <LayoutDashboard size={20} className="text-indigo-600" />,
     },
     {
-      label: "PRACTICE",
+      label: "Practice",
       href: "/dashboard/practice",
-      icon: <Timer size={20} className="text-[#3949AB]" />,
+      icon: <Timer size={20} className="text-indigo-600" />,
     },
     {
-      label: "ANALYTICS",
+      label: "Analytics",
       href: "/analytics",
-      icon: <TrendingUp size={20} className="text-[#3949AB]" />,
+      icon: <TrendingUp size={20} className="text-indigo-600" />,
     },
     {
-      label: "RANK",
+      label: "Rank",
       href: "/rank",
-      icon: <Shield size={20} className="text-yellow-500" />,
+      icon: <Shield size={20} className="text-amber-500" />,
     },
     {
-      label: "PROFILE",
+      label: "Profile",
       href: "/dashboard/profile",
-      icon: <User size={20} className="text-[#3949AB]" />,
+      icon: <User size={20} className="text-indigo-600" />,
     },
   ];
 
@@ -138,11 +140,11 @@ export default function Layout({
         >
           <Sidebar open={open} setOpen={setOpen}>
             <SidebarBody className="justify-between">
-              <div className="flex items-center space-x-3 mb-10">
+              <div className={`flex items-center px-5 mb-10 ${open ? "w-full" : ""}`}>
                 <SidebarLogo />
               </div>
 
-              <div className="flex flex-1 flex-col">
+              <div className={`flex flex-1 px-5 flex-col ${open ? "w-full" : ""}`}>
                 <div className="flex flex-col gap-2">
                   {menuLinks.map((link, idx) => (
                     <SidebarLink
@@ -153,13 +155,13 @@ export default function Layout({
                   ))}
                 </div>
               </div>
-              <div className="flex flex-col gap-4 mt-auto">
+              <div className={`flex flex-col gap-4 px-5 mt-auto ${open ? "w-full" : ""}`}>
                 <CustomSignOut />
                 <SidebarLink
                   link={{
-                    label: "NIGHT MODE",
+                    label: "Night Mode",
                     href: "#",
-                    icon: <Moon size={20} className="text-[#3949AB]" />,
+                    icon: <Moon size={20} className="text-indigo-600" />,
                   }}
                 />
               </div>
@@ -170,7 +172,7 @@ export default function Layout({
 
       <div
         className={`flex-1 flex flex-col lg:flex-col h-full overflow-hidden transition-all duration-300 ${
-          showSidebar && open ? "lg:ml-[256px]" : "lg:ml-[70px]"
+          showSidebar && open ? "lg:ml-[240px]" : "lg:ml-[60px]"
         }`}
       >
         {/* Header for smaller screens */}
@@ -201,5 +203,22 @@ export default function Layout({
       </div>
       {/* Profile card */}
     </div>
+  );
+}
+
+// Create a wrapper component that provides the session
+export default function Layout({
+  children,
+  message = "Loading your content",
+}: {
+  children: ReactNode;
+  message?: string;
+}) {
+  return (
+    <SessionProvider>
+      <DashboardLayoutContent message={message}>
+        {children}
+      </DashboardLayoutContent>
+    </SessionProvider>
   );
 }

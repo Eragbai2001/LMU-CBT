@@ -63,7 +63,7 @@ export default function TheoryQuestionNavigation({
             "px-4 py-2 flex items-center rounded-md text-sm font-medium",
             isLastQuestion
               ? "bg-green-600 text-white hover:bg-green-700"
-              : "bg-purple-600 text-white hover:bg-purple-700"
+              : "bg-blue-600 text-white hover:bg-blue-700"
           )}
         >
           {isLastQuestion ? "Submit" : "Next"}

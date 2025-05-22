@@ -7,8 +7,8 @@ import { prisma } from "@/lib/prisma";
 export async function updateProfile(data: {
   name: string;
   email: string;
-  avatarStyle: string;
   avatarSeed: string;
+  // Removed enableAiAssistant as it's now handled by local storage
 }) {
   try {
     const session = await auth();
@@ -22,8 +22,8 @@ export async function updateProfile(data: {
       where: { id: session.user.id },
       data: {
         name: data.name,
-        avatarStyle: data.avatarStyle,
         avatarSeed: data.avatarSeed,
+        // Removed enableAiAssistant as it's now handled by local storage
         // Don't update email as it's the primary identifier
       },
     });

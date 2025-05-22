@@ -8,12 +8,15 @@ import {
   Edit,
   Trash2,
   Plus,
+  Upload,
+  FileUp,
 } from "lucide-react";
 import { Sigma, FlaskConical, BookOpen, Brain } from "lucide-react";
 import TestPopupModal from "./TestPopupModal";
 import ConfirmationModal from "./ConfirmationModal";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react"; // Import useSession for role check
+import UploadNotesModal from "./UploadNotesModal"; // Import new component
 
 interface Test {
   id: string | number;
@@ -42,6 +45,7 @@ export default function PracticeTests() {
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [testToDelete, setTestToDelete] = useState<Test | null>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const router = useRouter();
   const { data: session } = useSession(); // Get session data
   const isAdmin = session?.user?.role === "ADMIN"; // Check if the user is an admin
@@ -91,17 +95,24 @@ export default function PracticeTests() {
       .then((res) => res.json())
       .then((data) => {
         console.log("Tests from API:", data); // Enhanced logging to check testType values
-        setTests(data);
+        console.log("Type of data:", typeof data);
+        console.log("Is Array?", Array.isArray(data));
+        // Ensure tests is always an array
+        const testsArray = Array.isArray(data) ? data : [];
+        setTests(testsArray);
         setLoading(false);
       })
       .catch((err) => {
         console.error("Error fetching practice tests:", err);
         setLoading(false);
+        // Set tests to empty array on error
+        setTests([]);
       });
   }, []);
 
-  const displayedTests = showAll ? tests : tests.slice(0, 4);
-  const hasMoreTests = tests.length > 4;
+  // Safe array operations
+  const displayedTests = showAll ? tests : (Array.isArray(tests) ? tests.slice(0, 4) : []);
+  const hasMoreTests = Array.isArray(tests) && tests.length > 4;
 
   if (loading) {
     return (
@@ -172,7 +183,7 @@ export default function PracticeTests() {
                 }`}
               >
                 {/* Removed console.log to fix the error */}
-                {test.testType === "theory" ? "Theory" : "Objective"}
+                {test.testType === "theory" ? "Theory" : "MCQ"}
               </span>
             </div>
 
@@ -215,6 +226,18 @@ export default function PracticeTests() {
             />
           </button>
         )}
+        
+        <button
+          onClick={() => setIsUploadModalOpen(true)}
+          className="flex items-center justify-center py-2.5 px-6 bg-green-600 text-white font-medium rounded-lg text-sm shadow-sm hover:bg-green-700 transition-all hover:shadow cursor-pointer group"
+        >
+          <span>Generate Test from Notes</span>
+          <FileUp
+            size={16}
+            className="ml-2 transition-transform group-hover:scale-110 duration-300"
+          />
+        </button>
+        
         {isAdmin && (
           <button
             onClick={() => router.push("/create-test")}
@@ -233,6 +256,16 @@ export default function PracticeTests() {
         <TestPopupModal
           test={selectedTest}
           onClose={() => setSelectedTest(null)}
+        />
+      )}
+
+      {isUploadModalOpen && (
+        <UploadNotesModal 
+          onClose={() => setIsUploadModalOpen(false)}
+          onTestCreated={(newTest) => {
+            setTests(prev => [...prev, newTest]);
+            setIsUploadModalOpen(false);
+          }}
         />
       )}
 

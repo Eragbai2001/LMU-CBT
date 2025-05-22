@@ -24,11 +24,11 @@ export default function TheoryQuestion({ question }: TheoryQuestionProps) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div className="bg-white rounded-xl shadow-sm p-6 mb-0">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center">
-          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-3">
-            <Book size={20} className="text-purple-700" />
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+            <Book size={20} className="text-blue-700" />
           </div>
           <h2 className="text-lg font-medium text-gray-800">Question</h2>
         </div>
@@ -42,7 +42,7 @@ export default function TheoryQuestion({ question }: TheoryQuestionProps) {
           </span>
 
           {question?.topic && (
-            <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">
+            <span className="text-xs bg-blue-50 px-2 py-1 rounded-full text-blue-700">
               {question.topic}
             </span>
           )}

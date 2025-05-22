@@ -4,7 +4,7 @@ import Link, { type LinkProps } from "next/link";
 import type React from "react";
 import { useState, createContext, useContext } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { IconMenu2, IconX } from "@tabler/icons-react";
+import { Menu, X } from "lucide-react";
 
 interface Links {
   label: string;
@@ -89,11 +89,11 @@ export const DesktopSidebar = ({
   return (
     <motion.div
       className={cn(
-        "h-full px-4 py-4 hidden md:flex md:flex-col bg-white shadow-lg w-[300px] shrink-0",
+        "h-full py-4 hidden md:flex md:flex-col bg-white shadow-lg w-[240px] shrink-0 items-center justify-center",
         className
       )}
       animate={{
-        width: animate ? (open ? "300px" : "60px") : "300px",
+        width: animate ? (open ? "240px" : "60px") : "240px",
       }}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
@@ -118,10 +118,7 @@ export const MobileSidebar = ({
       {...props}
     >
       <div className="flex justify-end z-20 w-full">
-        <IconMenu2
-          className="text-neutral-800"
-          onClick={() => setOpen(!open)}
-        />
+        <Menu className="text-neutral-800" onClick={() => setOpen(!open)} />
       </div>
       <AnimatePresence>
         {open && (
@@ -142,7 +139,7 @@ export const MobileSidebar = ({
               className="absolute right-10 top-10 z-50 text-neutral-800"
               onClick={() => setOpen(!open)}
             >
-              <IconX />
+              <X />
             </div>
             {children}
           </motion.div>

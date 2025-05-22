@@ -10,7 +10,7 @@ export const SidebarLogo = () => {
       <div className="bg-primary/10 p-2 rounded-full">
         <GraduationCap className="h-6 w-6 text-primary" />
       </div>
-      {open && <span className="font-bold text-lg">UniTest CBT</span>}
+      {open && <span className="font-bold text-lg text-nowrap text-nowrap">UniTest CBT</span>}
     </div>
   );
 };

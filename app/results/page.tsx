@@ -11,6 +11,7 @@ import {
   Info,
   Lightbulb,
   X,
+  ClipboardCopy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +48,7 @@ export default function ResultsPage() {
   const [error, setError] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [copied, setCopied] = useState(false);
 
   // Fetch results data
   useEffect(() => {
@@ -170,7 +172,24 @@ export default function ResultsPage() {
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             Download PDF
           </Button>
-          <Button size="sm">Share Results</Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+          >
+            {copied ? (
+              <>
+                <Check className="mr-2 h-4 w-4" /> Copied!
+              </>
+            ) : (
+              <>
+                <ClipboardCopy className="mr-2 h-4 w-4" /> Share Results
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
@@ -614,7 +633,7 @@ export default function ResultsPage() {
                                 </Tooltip>
                               </TooltipProvider>
 
-                              {question.status === "incorrect" && (
+                              {/* {question.status === "incorrect" && (
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -631,7 +650,7 @@ export default function ResultsPage() {
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
-                              )}
+                              )} */}
                             </div>
                           </td>
                         </tr>
@@ -661,7 +680,7 @@ export default function ResultsPage() {
                         variant="outline"
                         className="bg-green-50 text-green-700 border-green-200"
                       >
-                        Q{question.id}
+                        {question.question}
                       </Badge>
                     ))}
                 </div>
@@ -684,7 +703,7 @@ export default function ResultsPage() {
                         variant="outline"
                         className="bg-red-50 text-red-700 border-red-200"
                       >
-                        Q{question.id}
+                        {question.question}
                       </Badge>
                     ))}
                 </div>
@@ -707,7 +726,7 @@ export default function ResultsPage() {
                         variant="outline"
                         className="bg-gray-100 text-gray-700 border-gray-200"
                       >
-                        Q{question.id}
+                        {question.question}
                       </Badge>
                     ))}
                 </div>
@@ -736,7 +755,7 @@ export default function ResultsPage() {
                 <HelpCircle className="h-5 w-5 text-amber-500" /> Review Weak
                 Areas
               </h3>
-              <p className="text-sm text-gray-600 text-left">
+              <p className="text-sm text-gray-600 text-left text-wrap m">
                 Focus on the questions you got wrong with targeted practice.
               </p>
             </Button>
@@ -752,7 +771,7 @@ export default function ResultsPage() {
                 <Lightbulb className="h-5 w-5 text-blue-500" /> AI-Powered
                 Tutoring
               </h3>
-              <p className="text-sm text-gray-600 text-left">
+              <p className="text-sm text-gray-600 text-left text-wrap ">
                 Get personalized explanations for questions you answered
                 incorrectly.
               </p>
@@ -766,7 +785,7 @@ export default function ResultsPage() {
               <h3 className="font-medium flex items-center gap-2 mb-2 w-full text-left">
                 <Award className="h-5 w-5 text-green-500" /> Take Another Test
               </h3>
-              <p className="text-sm text-gray-600 text-left">
+              <p className="text-sm text-gray-600 text-left text-wrap ">
                 Challenge yourself with another practice test to improve your
                 knowledge.
               </p>
