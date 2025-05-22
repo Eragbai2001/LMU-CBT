@@ -51,9 +51,10 @@ model PracticeTest {
   results         TestResult[]
   durationOptions Duration[]        @relation("TestDurations")
   yearOptions     Year[]            @relation("TestYears")
-  sessions        PracticeSession[]
-  questions       Question[]
-  results         TestResult[] // Add this line to establish the relation
+  // Remove duplicate entries below
+  // sessions        PracticeSession[]  <- Remove this duplicate
+  // questions       Question[]         <- Remove this duplicate
+  // results         TestResult[]       <- Remove this duplicate
 }
 
 model Duration {

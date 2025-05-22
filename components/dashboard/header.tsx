@@ -46,7 +46,7 @@ export default function UserProfileWithCard() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-4">
+    <div className="bg-white rounded-lg shadow-sm border p-4 mb-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           {/* Avatar */}
@@ -83,7 +83,7 @@ export default function UserProfileWithCard() {
             </h1>
 
             <p className="text-gray-500 font-light text-sm sm:text-base py-1">
-              Let's learn something new today
+              Lets learn something new today
             </p>
           </div>
         </div>
