@@ -106,11 +106,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       if (!dbUser && account?.provider === "google") {
         // Determine if the user should be an admin based on the email
-        const adminEmails = [
-          
-          "admin2@example.com",
-          "admin3@example.com",
-        ];
+        const adminEmails = ["admin2@example.com", "admin3@example.com"];
         const isAdmin = adminEmails.includes(user.email);
 
         // Create new user

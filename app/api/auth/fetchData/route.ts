@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
 // Define the User type
 interface User {
@@ -20,6 +21,8 @@ interface User {
 // Define the NormalizedUser type
 interface NormalizedUser extends User {
   displayName?: string;
+  avatarStyle?: string; // Add avatar fields
+  avatarSeed?: string; // Add avatar fields
 }
 
 function normalizeUserData(user: User): NormalizedUser {
@@ -67,15 +70,38 @@ export async function GET() {
       const jwt = supabaseSession?.access_token;
 
       // Get raw user data from either source
-      const rawUserData: User | null = session?.user || supabaseSession?.user || null;
+      const rawUserData: User | null =
+        session?.user || supabaseSession?.user || null;
 
       // Normalize the user data (if we have any)
-      const normalizedUser = rawUserData ? normalizeUserData(rawUserData) : null;
+      const normalizedUser = rawUserData
+        ? normalizeUserData(rawUserData)
+        : null;
+
+      // Get avatar data from Prisma if user exists
+      let avatarData = {};
+      if (normalizedUser?.id) {
+        const userProfile = await prisma.user.findUnique({
+          where: { id: normalizedUser.id },
+          select: {
+            avatarStyle: true,
+            avatarSeed: true,
+          },
+        });
+
+        if (userProfile) {
+          avatarData = {
+            avatarStyle: userProfile.avatarStyle,
+            avatarSeed: userProfile.avatarSeed,
+          };
+        }
+      }
 
       // Include role in the response for authorization checks
       return NextResponse.json({
         user: {
           ...normalizedUser,
+          ...avatarData, // Add avatar data
           role: session.user.role || "USER", // Include role from session
         },
         jwt: jwt || null,
