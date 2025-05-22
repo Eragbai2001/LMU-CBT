@@ -46,26 +46,45 @@ export async function GET(request: NextRequest) {
 
     // Parse the stored answers
     const userAnswers = JSON.parse(testResult.answersJson || "{}");
+    const storedQuestionData = JSON.parse(testResult.questionDataJson || "{}");
 
     // Format questions for display
+        // In your app/api/result/route.ts file
     const processedQuestions = questions.map((q) => {
       const userAnswer = userAnswers[q.id] || "";
-      const status = !userAnswer
-        ? "skipped"
-        : q.correctAnswer === null || q.correctAnswer === undefined
-        ? "answered" // For theory questions
-        : q.correctAnswer === userAnswer
-        ? "correct"
-        : "incorrect";
-
+      const storedQuestion = storedQuestionData[q.id] || {};
+      const correctAnswer = storedQuestion?.correctAnswer || q.correctAnswer || "N/A";
+      
+      // Determine if the answer is correct with format handling
+      let isCorrect = false;
+      
+      if (!userAnswer) {
+        // Skip comparison for unanswered questions
+      } else if (correctAnswer === userAnswer) {
+        // Direct match - user selected "A" and correct answer is "A"
+        isCorrect = true;
+      } else if (correctAnswer.match(/^[A-D]$/i) && storedQuestion.options) {
+        // Letter format - convert "A" to index and check option value
+        const correctIndex = correctAnswer.toUpperCase().charCodeAt(0) - 65; // A->0, B->1, etc.
+        if (storedQuestion.options[correctIndex] === userAnswer) {
+          isCorrect = true;
+        }
+      }
+      
+      const status = !userAnswer 
+        ? "skipped" 
+        : isCorrect ? "correct" : "incorrect";
+    
       return {
         id: q.id,
         question: q.content,
-        status,
+        status, // Now uses the proper comparison
         section: q.topic || "General",
         yourAnswer: userAnswer || "Not answered",
-        correctAnswer: q.correctAnswer || "N/A",
-        explanation: q.solution || "",
+        correctAnswer: storedQuestion.options && correctAnswer.match(/^[A-D]$/i)
+          ? `${correctAnswer} (${storedQuestion.options[correctAnswer.charCodeAt(0) - 65]})`
+          : correctAnswer,
+        explanation: storedQuestion?.explanation || q.solution || "",
       };
     });
 

@@ -341,7 +341,7 @@ export default function TheoryTestPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Enhanced Header */}
       <div className="sticky top-0 z-10  ">
         <div className="max-w-6xl mx-auto px-4 py-3 border-b border-gray-200 ">
@@ -598,7 +598,7 @@ export default function TheoryTestPage() {
           className={cn(
             "lg:w-[400px] bg-white rounded-lg shadow-sm ml-0 lg:ml-6 flex flex-col transition-all",
             aiPanelOpen
-              ? "fixed inset-0 z-50 lg:static lg:inset-auto" // Full screen on mobile, side panel on desktop
+              ? "fixed inset-0  lg:static lg:inset-auto" // Full screen on mobile, side panel on desktop
               : "hidden" // Hidden when closed
           )}
         >

@@ -548,7 +548,7 @@ export default function TestPage() {
             {/* Finish button */}
             <button
               onClick={handleFinishTest}
-              className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-pointer"
             >
               Finish Test
             </button>

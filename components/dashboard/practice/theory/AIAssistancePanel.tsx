@@ -9,6 +9,7 @@ interface AIAssistancePanelProps {
   onClose: () => void;
   questionContent: string;
   currentAnswer: string;
+  correctAnswer?: string;
 }
 
 type Message = {
@@ -128,11 +129,13 @@ export default function AIAssistancePanel({
     sendMessage(prompt);
   };
 
+  
+
   // Only render if the panel is open
   if (!isOpen) return null;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full ">
       {/* Header */}
       <div className="border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">

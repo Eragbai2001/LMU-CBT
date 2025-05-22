@@ -8,12 +8,14 @@ import {
   Edit,
   Trash2,
   Plus,
+  Info,
 } from "lucide-react";
 import { Sigma, FlaskConical, BookOpen, Brain } from "lucide-react";
 import TestPopupModal from "./TestPopupModal";
 import ConfirmationModal from "./ConfirmationModal";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react"; // Import useSession for role check
+import { Button } from "@/components/ui/button";
 
 interface Test {
   id: string | number;
@@ -38,13 +40,14 @@ const iconMap: Record<string, React.ReactNode> = {
 export default function PracticeTests() {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); // Add this line
   const [showAll, setShowAll] = useState(false);
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [testToDelete, setTestToDelete] = useState<Test | null>(null);
   const router = useRouter();
-  const { data: session } = useSession(); // Get session data
-  const isAdmin = session?.user?.role === "ADMIN"; // Check if the user is an admin
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
 
   const handleEdit = useCallback(
     (testId: string | number) => {
@@ -86,22 +89,47 @@ export default function PracticeTests() {
     setTestToDelete(null);
   };
 
-  useEffect(() => {
+useEffect(() => {
     fetch("/api/auth/practice-tests")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Server returned status ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
-        console.log("Tests from API:", data); // Enhanced logging to check testType values
+        console.log("Tests from API:", data);
         setTests(data);
         setLoading(false);
       })
       .catch((err) => {
         console.error("Error fetching practice tests:", err);
+        setError("Failed to load practice tests"); // Set error state here
         setLoading(false);
       });
   }, []);
 
+
   const displayedTests = showAll ? tests : tests.slice(0, 4);
   const hasMoreTests = tests.length > 4;
+
+
+   if (error) {
+    return (
+      <div className="container mx-auto py-20 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-6">
+          <Info size={32} className="text-red-600" />
+        </div>
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+        <p className="text-gray-700 mb-6">
+          {error || "Failed to load practice tests"}
+        </p>
+        <Button onClick={() => router.push("/dashboard")}>
+          Return to Dashboard
+        </Button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

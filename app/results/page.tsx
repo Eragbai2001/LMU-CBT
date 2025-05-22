@@ -36,6 +36,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import AIAssistancePanel from "@/components/dashboard/practice/theory/AIAssistancePanel";
+import { cn } from "@/lib/utils";
 
 export default function ResultsPage() {
   const router = useRouter();
@@ -45,8 +47,49 @@ export default function ResultsPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const [currentAiQuestion, setCurrentAiQuestion] = useState<{
+    question: string;
+    answer?: string;
+    correctAnswer?: string;
+  } | null>(null);
+
+  // Add these interfaces below your imports
+  interface Question {
+    id: string;
+    question: string;
+    status: "correct" | "incorrect" | "skipped";
+    section?: string;
+    yourAnswer?: string;
+    correctAnswer: string;
+    explanation?: string;
+  }
+
+  interface SectionPerformance {
+    name: string;
+    score: number;
+    totalQuestions: number;
+  }
+
+  interface TestResult {
+    testId?: string;
+    testName: string;
+    studentName?: string;
+    overallScore: number;
+    performanceRating: string;
+    totalQuestions: number;
+    correctAnswers: number;
+    incorrectAnswers: number;
+    skippedQuestions: number;
+    timeTaken?: string;
+    timeAllowed?: string;
+    questions: Question[];
+    sectionPerformance?: SectionPerformance[];
+    strengths?: string[];
+    improvements?: string[];
+  }
 
   // Fetch results data
   useEffect(() => {
@@ -149,6 +192,27 @@ export default function ResultsPage() {
     }
   };
 
+  const toggleAIPanel = (question?: Question) => {
+    if (question) {
+      setCurrentAiQuestion({
+        question: question.question,
+        answer: question.yourAnswer, // Use yourAnswer for consistency
+        correctAnswer: question.correctAnswer,
+      });
+    } else if (!aiPanelOpen) {
+      // Default to first question if none selected
+      const firstQuestion = testResult?.questions[0];
+      if (firstQuestion) {
+        setCurrentAiQuestion({
+          question: firstQuestion.question,
+          answer: firstQuestion.yourAnswer, // Use yourAnswer for consistency
+          correctAnswer: firstQuestion.correctAnswer, // Fixed: use firstQuestion instead of question
+        });
+      }
+    }
+    setAiPanelOpen(true);
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -169,6 +233,15 @@ export default function ResultsPage() {
           </Badge>
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             Download PDF
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1 cursor-pointer"
+            onClick={() => toggleAIPanel()}
+          >
+            <Lightbulb className="h-4 w-4" />
+            AI Help
           </Button>
           <Button size="sm">Share Results</Button>
         </div>
@@ -314,9 +387,9 @@ export default function ResultsPage() {
                       </h3>
                       <div className="space-y-2">
                         {testResult.sectionPerformance
-                          .sort((a: any, b: any) => a.score - b.score)
+                          .sort((a: SectionPerformance, b: SectionPerformance) => a.score - b.score)
                           .slice(0, 2)
-                          .map((section: any, index: number) => (
+                          .map((section: SectionPerformance, index: number) => (
                             <div
                               key={index}
                               className="flex items-center gap-2"
@@ -347,7 +420,7 @@ export default function ResultsPage() {
                 <CardContent className="pt-0">
                   <div className="space-y-4">
                     {testResult.sectionPerformance.map(
-                      (section: any, index: number) => (
+                      (section: SectionPerformance, index: number) => (
                         <div key={index} className="space-y-1">
                           <div className="flex justify-between">
                             <div className="flex items-center gap-2">
@@ -416,9 +489,9 @@ export default function ResultsPage() {
                         </li>
                         {testResult.sectionPerformance &&
                           testResult.sectionPerformance
-                            .sort((a: any, b: any) => b.score - a.score)
+                            .sort((a: SectionPerformance, b: SectionPerformance) => a.score - b.score)
                             .slice(0, 2)
-                            .map((section: any, idx: number) => (
+                            .map((section: SectionPerformance, idx: number) => (
                               <li key={idx} className="flex items-start gap-2">
                                 <Check className="h-4 w-4 text-green-500 mt-0.5" />
                                 <span>
@@ -459,9 +532,9 @@ export default function ResultsPage() {
                         )}
                         {testResult.sectionPerformance &&
                           testResult.sectionPerformance
-                            .sort((a: any, b: any) => a.score - b.score)
+                            .sort((a: SectionPerformance, b: SectionPerformance) => a.score - b.score)
                             .slice(0, 2)
-                            .map((section: any, idx: number) => (
+                            .map((section: SectionPerformance, idx: number) => (
                               <li key={idx} className="flex items-start gap-2">
                                 <HelpCircle className="h-4 w-4 text-amber-500 mt-0.5" />
                                 <span>
@@ -513,11 +586,11 @@ export default function ResultsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {testResult.questions.map((question: any) => {
+                    {testResult.questions.map((question: Question) => {
                       const { icon, color } = getStatusDisplay(question.status);
                       return (
                         <tr key={question.id} className="hover:bg-gray-50">
-                          <td className="p-3 text-sm">{question.id}</td>
+                          <td className="p-3 text-sm"> {question.question}</td>
                           {question.section && (
                             <td className="p-3 text-sm">{question.section}</td>
                           )}
@@ -549,7 +622,7 @@ export default function ResultsPage() {
                                       <DialogContent>
                                         <DialogHeader>
                                           <DialogTitle>
-                                            Question {question.id}
+                                            Question: {question.question}
                                           </DialogTitle>
                                           {question.section && (
                                             <DialogDescription>
@@ -622,6 +695,7 @@ export default function ResultsPage() {
                                         variant="outline"
                                         size="sm"
                                         className="h-8 w-8 p-0"
+                                        onClick={() => toggleAIPanel(question)} // Add this onClick handler
                                       >
                                         <Lightbulb className="h-4 w-4" />
                                       </Button>
@@ -642,20 +716,29 @@ export default function ResultsPage() {
               </div>
             </CardContent>
           </Card>
-
           {/* Question Status Summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Check className="h-5 w-5 text-green-500" /> Correct Answers
+                  <Badge
+                    variant="outline"
+                    className="ml-auto bg-green-50 text-green-700"
+                  >
+                    {
+                      testResult.questions.filter(
+                        (q: Question) => q.status === "correct"
+                      ).length
+                    }
+                  </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex flex-wrap gap-2">
                   {testResult.questions
-                    .filter((q: any) => q.status === "correct")
-                    .map((question: any) => (
+                    .filter((q: Question) => q.status === "correct")
+                    .map((question:Question) => (
                       <Badge
                         key={question.id}
                         variant="outline"
@@ -672,13 +755,23 @@ export default function ResultsPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <X className="h-5 w-5 text-red-500" /> Incorrect Answers
+                  <Badge
+                    variant="outline"
+                    className="ml-auto bg-red-50 text-red-700"
+                  >
+                    {
+                      testResult.questions.filter(
+                        (q: Question) => q.status === "incorrect"
+                      ).length
+                    }
+                  </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex flex-wrap gap-2">
                   {testResult.questions
-                    .filter((q: any) => q.status === "incorrect")
-                    .map((question: any) => (
+                    .filter((q: Question) => q.status === "incorrect")
+                    .map((question: Question) => (
                       <Badge
                         key={question.id}
                         variant="outline"
@@ -695,13 +788,23 @@ export default function ResultsPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Clock className="h-5 w-5 text-gray-500" /> Skipped Questions
+                  <Badge
+                    variant="outline"
+                    className="ml-auto bg-gray-100 text-gray-700"
+                  >
+                    {
+                      testResult.questions.filter(
+                        (q: Question) => q.status === "skipped"
+                      ).length
+                    }
+                  </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex flex-wrap gap-2">
                   {testResult.questions
-                    .filter((q: any) => q.status === "skipped")
-                    .map((question: any) => (
+                    .filter((q: Question) => q.status === "skipped")
+                    .map((question: Question) => (
                       <Badge
                         key={question.id}
                         variant="outline"
@@ -713,67 +816,35 @@ export default function ResultsPage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </div>{" "}
         </TabsContent>
       </Tabs>
+      {/* AI Assistance Panel */}
 
-      {/* Next Steps */}
-      <Card className="mt-6">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Recommended Next Steps</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button
-              variant="outline"
-              className="h-auto p-4 flex flex-col items-start justify-start border rounded-lg hover:bg-gray-50 transition-colors"
-              onClick={() =>
-                testResult.incorrectAnswers > 0 &&
-                router.push(`/review?testId=${testId}&sessionId=${sessionId}`)
-              }
-            >
-              <h3 className="font-medium flex items-center gap-2 mb-2 w-full text-left">
-                <HelpCircle className="h-5 w-5 text-amber-500" /> Review Weak
-                Areas
-              </h3>
-              <p className="text-sm text-gray-600 text-left">
-                Focus on the questions you got wrong with targeted practice.
-              </p>
-            </Button>
+      <div
+        className={cn(
+          "fixed inset-0 bg-black/50 z-50 transition-opacity duration-300",
+          aiPanelOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setAiPanelOpen(false)}
+      ></div>
 
-            <Button
-              variant="outline"
-              className="h-auto p-4 flex flex-col items-start justify-start border rounded-lg hover:bg-gray-50 transition-colors"
-              onClick={() =>
-                router.push(`/ai-help?testId=${testId}&sessionId=${sessionId}`)
-              }
-            >
-              <h3 className="font-medium flex items-center gap-2 mb-2 w-full text-left">
-                <Lightbulb className="h-5 w-5 text-blue-500" /> AI-Powered
-                Tutoring
-              </h3>
-              <p className="text-sm text-gray-600 text-left">
-                Get personalized explanations for questions you answered
-                incorrectly.
-              </p>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-auto p-4 flex flex-col items-start justify-start border rounded-lg hover:bg-gray-50 transition-colors"
-              onClick={() => router.push("/dashboard/practice")}
-            >
-              <h3 className="font-medium flex items-center gap-2 mb-2 w-full text-left">
-                <Award className="h-5 w-5 text-green-500" /> Take Another Test
-              </h3>
-              <p className="text-sm text-gray-600 text-left">
-                Challenge yourself with another practice test to improve your
-                knowledge.
-              </p>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div
+        className={cn(
+          "fixed right-0 top-0 h-full w-96 bg-white z-50 shadow-lg overflow-hidden transition-transform duration-300 ease-in-out",
+          aiPanelOpen ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        {currentAiQuestion && (
+          <AIAssistancePanel
+            isOpen={aiPanelOpen}
+            onClose={() => setAiPanelOpen(false)}
+            questionContent={currentAiQuestion.question}
+            currentAnswer={currentAiQuestion.answer || ""}
+            correctAnswer={currentAiQuestion.correctAnswer}
+          />
+        )}
+      </div>
     </div>
   );
 }
