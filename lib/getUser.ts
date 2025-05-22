@@ -1,8 +1,15 @@
-export async function getUser(): Promise<User | null> {
+"use client";
+
+export async function getUser() {
   try {
-    const response = await fetch("/api/auth/fetchData", {
+    // Use absolute URL with origin to avoid parsing issues
+    const baseUrl = window.location.origin;
+    const response = await fetch(`${baseUrl}/api/auth/fetchData`, {
       method: "GET",
       credentials: "include", // Ensures cookies are sent
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
     if (!response.ok) {
@@ -24,12 +31,4 @@ export async function getUser(): Promise<User | null> {
     console.error("Fetch user error:", error);
     return null;
   }
-}
-
-// Add this interface if it's not already defined
-interface User {
-  name?: string;
-  email?: string;
-  [key: string]: unknown;
-  role?: string;
 }

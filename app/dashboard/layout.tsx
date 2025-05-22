@@ -35,13 +35,13 @@ export default function Layout({
   const router = useRouter();
   const pathname = usePathname();
 
-  // Calculate UI state
+  // Define constants before any hooks are called
   const showSidebar = pathname.startsWith("/dashboard");
   const showHeader =
     !pathname.includes("/dashboard/practice/test") &&
     !pathname.includes("/dashboard/practice/theory");
 
-  // All hooks must be called at the top level, before any conditions
+  // Group all useEffect hooks together to maintain consistent order
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -59,6 +59,7 @@ export default function Layout({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Close sidebar when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const sidebar = document.getElementById("mobile-sidebar");
@@ -75,12 +76,20 @@ export default function Layout({
     };
   }, [open]);
 
+  // Debug logging effect - ensuring it's always called
   useEffect(() => {
     console.log("Current pathname:", pathname);
     console.log("Header visible:", showHeader);
-  }, [pathname]);
+  }, [pathname, showHeader]);
 
-  // Prepare menu links
+  if (status === "unauthenticated") return null;
+  if (status === "loading")
+    return (
+      <div className="fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+        <LoaderAnimation size="large" text={message} />
+      </div>
+    );
+
   const menuLinks = [
     {
       label: "DASHBOARD",
@@ -108,19 +117,6 @@ export default function Layout({
       icon: <User size={20} className="text-[#3949AB]" />,
     },
   ];
-
-  // Use conditional rendering instead of early returns
-  if (status === "unauthenticated") {
-    return null;
-  }
-
-  if (status === "loading") {
-    return (
-      <div className="fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
-        <LoaderAnimation size="large" text={message} />
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
@@ -203,6 +199,7 @@ export default function Layout({
           <main className={`${showHeader ? "px-10" : "p-0"}`}>{children}</main>
         </div>
       </div>
+      {/* Profile card */}
     </div>
   );
 }

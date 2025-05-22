@@ -1,8 +1,11 @@
+import type React from "react";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Barlow_Semi_Condensed } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
+import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // Correct font import - "Geist" should be "Geist_Sans"
 const geistSans = Geist({
@@ -33,11 +36,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${barlow.variable} font-sans antialiased`}
       >
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster richColors position="top-right" />
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

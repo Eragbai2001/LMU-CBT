@@ -7,18 +7,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Keep the Avatar model for your colleague
+model Avatar {
+  id       Int     @id @default(autoincrement())
+  userId   String  @unique
+  url      String
+  type     String?
+  seed     String?
+  initials String?
+  user     User?   @relation(fields: [userId], references: [id], name: "UserAvatar")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
 model User {
   id               String    @id @default(uuid())
   name             String
   email            String    @unique
   password         String?
-  createdAt        DateTime  @default(now())
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
+  createdAt        DateTime  @default(now())
   role             Role      @default(USER)
-  avatarSeed       String?
-  avatarStyle      String?
+  avatar           Avatar?   @relation(name: "UserAvatar")
 }
+
+// Update your existing PracticeTest model
 
 model PracticeTest {
   id              String            @id @default(cuid())
@@ -34,65 +51,70 @@ model PracticeTest {
   results         TestResult[]
   durationOptions Duration[]        @relation("TestDurations")
   yearOptions     Year[]            @relation("TestYears")
+  sessions        PracticeSession[]
+  questions       Question[]
+  results         TestResult[] // Add this line to establish the relation
 }
 
 model Duration {
   id       String            @id @default(cuid())
   minutes  Int
-  sessions PracticeSession[]
   tests    PracticeTest[]    @relation("TestDurations")
+  sessions PracticeSession[]
 }
 
 model Year {
   id       String            @id @default(cuid())
   value    Int
-  sessions PracticeSession[]
   tests    PracticeTest[]    @relation("TestYears")
+  sessions PracticeSession[]
 }
 
 model PracticeSession {
-  id         String       @id @default(cuid())
+  id         String   @id @default(cuid())
   userId     String
   testId     String
   durationId String?
   yearId     String
-  startedAt  DateTime     @default(now())
   topics     String[]
-  duration   Duration?    @relation(fields: [durationId], references: [id])
-  test       PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade)
-  year       Year         @relation(fields: [yearId], references: [id], onDelete: Cascade)
+  startedAt  DateTime @default(now())
+
+  test     PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  duration Duration?    @relation(fields: [durationId], references: [id])
+  year     Year         @relation(fields: [yearId], references: [id], onDelete: Cascade)
 }
 
 model Question {
   id            String       @id @default(cuid())
   content       String
   options       String[]
-  correctAnswer String?
-  testId        String
+  correctAnswer String? // Optional for theory questions
   solution      String?
   topic         String?
+  test          PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  testId        String
   image         String?
   points        Int?
-  theoryAnswer  String?
-  yearValue     Int?
-  test          PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  theoryAnswer  String? // For theory questions
+  yearValue     Int? // Store the year value directly for filtering
 }
 
 model TestResult {
-  id               String       @id @default(cuid())
+  id               String   @id @default(cuid())
   userId           String
   testId           String
-  sessionId        String
-  score            Int
+  sessionId        String // Link to the practice session
+  score            Int // Overall percentage score
   totalQuestions   Int
   correctAnswers   Int
   incorrectAnswers Int
   skippedQuestions Int
-  timeTaken        String?
-  completedAt      DateTime     @default(now())
-  answersJson      String
-  questionDataJson String?
-  test             PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  timeTaken        String? // Format like "10:45" (mm:ss)
+  completedAt      DateTime @default(now())
+  answersJson      String   @db.Text // Store user answers as JSON
+
+  // Relation to PracticeTest
+  test PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([testId])
@@ -100,15 +122,10 @@ model TestResult {
 }
 
 model MaintenanceSettings {
-  id                  Int      @id @default(autoincrement())
+  id                 Int      @id @default(autoincrement())
   is_maintenance_mode Boolean  @default(false)
   maintenance_message String   @default("Our site is currently under maintenance. We'll be back soon!")
-  updated_at          DateTime @default(now()) @updatedAt
+  updated_at         DateTime @default(now()) @updatedAt
 
   @@map("maintenance_settings")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
