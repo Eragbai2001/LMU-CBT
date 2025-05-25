@@ -29,15 +29,25 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const isTheoryTest = test.testType === "theory";
 
   // Automatically set duration to "no-time" for theory tests
   useEffect(() => {
+    // For theory tests, immediately set duration
     if (isTheoryTest) {
       setSelectedDuration("no-time");
     }
-  }, [isTheoryTest]);
+
+    // If there's only one year option, auto-select it
+    if (test.yearOptions && test.yearOptions.length === 1) {
+      setSelectedYear(test.yearOptions[0].id);
+    }
+
+    // Mark initialization as complete
+    setIsInitialized(true);
+  }, [isTheoryTest, test.yearOptions]);
 
   // Enhanced availableTopics logic with debug and fallback
   const availableTopics = useMemo(() => {
@@ -48,22 +58,21 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
     });
 
     // First try to get topics by selected year
-    const topicsBySelectedYear = test.topicsByYear?.find(
-      (y) => y.yearId === selectedYear
-    )?.topics || [];
-    
+    const topicsBySelectedYear =
+      test.topicsByYear?.find((y) => y.yearId === selectedYear)?.topics || [];
+
     if (topicsBySelectedYear.length > 0) {
       return topicsBySelectedYear;
     }
-    
+
     // Fallback: If no topics found for selected year or no year selected,
     // collect all unique topics from all years
     if (test.topicsByYear && test.topicsByYear.length > 0) {
-      const allTopics = test.topicsByYear.flatMap(y => y.topics || []);
+      const allTopics = test.topicsByYear.flatMap((y) => y.topics || []);
       // Return unique topics
       return [...new Set(allTopics)];
     }
-    
+
     return [];
   }, [selectedYear, test.topicsByYear]);
 
@@ -79,20 +88,24 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
   };
 
   const handleStartTest = () => {
-    // For theory tests, only require year selection
-    // For objective tests, require both year and duration
-    if (!selectedYear || (!isTheoryTest && !selectedDuration)) return;
+    // Add safety checks here
+    if (!selectedYear || (!isTheoryTest && !selectedDuration)) {
+      console.log("Cannot start test: Missing required selections");
+      return;
+    }
 
     setLoading(true);
 
     const topicQuery = selectedTopics
       .map((t) => `topic=${encodeURIComponent(t)}`)
       .join("&");
-      
+
     // Always use "no-time" for theory tests
-    const durationQuery = isTheoryTest 
-      ? "no-time" 
-      : (selectedDuration === "no-time" ? "no-time" : selectedDuration);
+    const durationQuery = isTheoryTest
+      ? "no-time"
+      : selectedDuration === "no-time"
+      ? "no-time"
+      : selectedDuration;
 
     const testPage = isTheoryTest
       ? "/dashboard/practice/theory"
@@ -283,7 +296,8 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
                 </div>
               ) : (
                 <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-                  No specific topics available. The test will include all topics for the selected year.
+                  No specific topics available. The test will include all topics
+                  for the selected year.
                 </div>
               )}
             </div>
@@ -304,16 +318,22 @@ export default function TestPopupModal({ test, onClose }: TestPopupModalProps) {
             <button
               className={cn(
                 "w-full py-3 px-4 rounded-lg text-white font-medium transition-colors mt-4",
-                (isTheoryTest ? selectedYear : (selectedDuration && selectedYear))
+                // Simplify the conditional styling
+                (isTheoryTest && selectedYear) ||
+                  (!isTheoryTest && selectedDuration && selectedYear)
                   ? isTheoryTest
                     ? "bg-purple-600 hover:bg-purple-700"
                     : "bg-blue-600 hover:bg-blue-700"
-                  : isTheoryTest
-                  ? "bg-purple-300 cursor-not-allowed"
-                  : "bg-blue-300 cursor-not-allowed"
+                  : "bg-gray-300 cursor-not-allowed"
               )}
               onClick={handleStartTest}
-              disabled={isTheoryTest ? !selectedYear : (!selectedDuration || !selectedYear)}
+              disabled={
+                loading ||
+                !isInitialized ||
+                (isTheoryTest
+                  ? !selectedYear
+                  : !selectedDuration || !selectedYear)
+              }
             >
               {loading
                 ? "Loading..."

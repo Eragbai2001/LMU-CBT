@@ -18,7 +18,7 @@ import {
   User,
   Moon,
   Menu,
-  FileText,
+  
 } from "lucide-react";
 import { SidebarLogo } from "@/components/dashboard/sidebar/sidebar-logo";
 import CustomSignOut from "@/components/dashboard/sidebar/custom-signout";

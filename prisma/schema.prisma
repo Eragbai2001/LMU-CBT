@@ -24,19 +24,20 @@ enum Role {
 }
 
 model User {
-  id                String    @id @default(uuid())
-  name              String
-  email             String    @unique
-  password          String?
-  resetToken        String?   @unique
-  resetTokenExpiry  DateTime?
-  createdAt         DateTime  @default(now())
-  role              Role      @default(USER)
-  avatarStyle String?
-  avatarSeed  String?
+  id               String    @id @default(uuid())
+  name             String
+  email            String    @unique
+  password         String?
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
+  createdAt        DateTime  @default(now())
+  role             Role      @default(USER)
+  avatarStyle      String?
+  avatarSeed       String?
+  avatar           Avatar?   @relation("UserAvatar") // Add this line to fix the error
 }
 
-model PracticeTest  {
+model PracticeTest {
   id              String            @id @default(cuid())
   title           String
   description     String
@@ -122,10 +123,10 @@ model TestResult {
 }
 
 model MaintenanceSettings {
-  id                 Int      @id @default(autoincrement())
+  id                  Int      @id @default(autoincrement())
   is_maintenance_mode Boolean  @default(false)
   maintenance_message String   @default("Our site is currently under maintenance. We'll be back soon!")
-  updated_at         DateTime @default(now()) @updatedAt
+  updated_at          DateTime @default(now()) @updatedAt
 
   @@map("maintenance_settings")
 }

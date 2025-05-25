@@ -8,12 +8,16 @@ import {
   Edit,
   Trash2,
   Plus,
+  Info,
+  FileUp,
 } from "lucide-react";
 import { Sigma, FlaskConical, BookOpen, Brain } from "lucide-react";
 import TestPopupModal from "./TestPopupModal";
 import ConfirmationModal from "./ConfirmationModal";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react"; // Import useSession for role check
+import { Button } from "@/components/ui/button";
+import UploadNotesModal from "./UploadNotesModal";
 
 interface Test {
   id: string | number;
@@ -88,7 +92,7 @@ export default function PracticeTests() {
     setTestToDelete(null);
   };
 
-useEffect(() => {
+  useEffect(() => {
     fetch("/api/auth/practice-tests")
       .then((res) => {
         if (!res.ok) {
@@ -110,13 +114,15 @@ useEffect(() => {
       });
   }, []);
 
-
   // Safe array operations
-  const displayedTests = showAll ? tests : (Array.isArray(tests) ? tests.slice(0, 4) : []);
+  const displayedTests = showAll
+    ? tests
+    : Array.isArray(tests)
+    ? tests.slice(0, 4)
+    : [];
   const hasMoreTests = Array.isArray(tests) && tests.length > 4;
 
-
-   if (error) {
+  if (error) {
     return (
       <div className="container mx-auto py-20 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-6">
@@ -245,7 +251,7 @@ useEffect(() => {
             />
           </button>
         )}
-        
+
         <button
           onClick={() => setIsUploadModalOpen(true)}
           className="flex items-center justify-center py-2.5 px-6 bg-green-600 text-white font-medium rounded-lg text-sm shadow-sm hover:bg-green-700 transition-all hover:shadow cursor-pointer group"
@@ -256,7 +262,7 @@ useEffect(() => {
             className="ml-2 transition-transform group-hover:scale-110 duration-300"
           />
         </button>
-        
+
         {isAdmin && (
           <button
             onClick={() => router.push("/create-test")}
@@ -279,11 +285,17 @@ useEffect(() => {
       )}
 
       {isUploadModalOpen && (
-        <UploadNotesModal 
+        <UploadNotesModal
           onClose={() => setIsUploadModalOpen(false)}
           onTestCreated={(newTest) => {
-            setTests(prev => [...prev, newTest]);
+            const updatedTests = [...tests, newTest];
+            setTests(updatedTests);
+            // Update localStorage
+            localStorage.setItem("practiceTests", JSON.stringify(updatedTests));
             setIsUploadModalOpen(false);
+
+            // Optional: Immediately select the new test to open it
+            setSelectedTest(newTest);
           }}
         />
       )}

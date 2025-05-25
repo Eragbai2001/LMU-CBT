@@ -78,7 +78,7 @@ export async function POST(req: Request) {
         image: q.image || null,
         points: q.points || 0,
         testId: test.id,
-        // Ensure yearValue is set for every question
+         // Ensure yearValue is set for every question
         yearValue: year,
       };
 
