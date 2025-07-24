@@ -1,6 +1,6 @@
 # Computer-Based Testing Platform
 
-A modern, feature-rich online examination system built with Next.js, Prisma, and TypeScript.
+A modern, feature-rich online examination system built with Next.js, Prisma, node js, and TypeScript.
 
 ## Table of Contents
 
