@@ -99,9 +99,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // Check domain first
-      if (!user.email?.endsWith("@lmu.edu.ng")) {
-        console.log("Rejected non-LMU email:", user.email);
+      // Update email validation to allow both domains
+      if (
+        !user.email?.endsWith("@lmu.edu.ng") &&
+        !user.email?.endsWith("@gmail.com")
+      ) {
+        console.log("Rejected email:", user.email);
         return false;
       }
 

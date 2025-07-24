@@ -1,36 +1,65 @@
-import { db } from "@/lib/db"; // Use the singleton Prisma instance
+import { db } from "@/lib/db";
+import { Role } from "@prisma/client";
 
+/**
+ * Fetches a user from the database by email
+ */
 export async function getUserFromDb(email: string) {
+  if (!email) {
+    console.error("getUserFromDb called without an email");
+    return null;
+  }
+
   try {
-    return await db.user.findUnique({
+    // Ensure we're not using a stale connection
+    await db.$connect();
+
+    const user = await db.user.findUnique({
       where: { email },
     });
+
+    return user;
   } catch (error) {
     console.error("Error fetching user:", error);
     return null;
   }
 }
 
+/**
+ * Creates a new user in the database
+ */
 export async function createUserInDb({
   email,
   name,
-  password = null, // Default to null for OAuth users
-  role = "USER", // Default role is USER
+  password = null,
+  role = "USER",
 }: {
   email: string;
   name: string;
   password?: string | null;
-  role?: "ADMIN" | "USER"; // Add role to the function parameters
+  role?: "ADMIN" | "USER";
 }) {
+  if (!email) {
+    console.error("createUserInDb called without an email");
+    return null;
+  }
+
   try {
-    return await db.user.create({
+    // Ensure we're not using a stale connection
+    await db.$connect();
+
+    // Create user with proper role enum
+    const newUser = await db.user.create({
       data: {
         email,
         name,
-        password, // This now allows both null and actual passwords
-        role, // Include the role in the database creation
+        password,
+        role: role as Role,
       },
     });
+
+    console.log(`User created successfully with ID: ${newUser.id}`);
+    return newUser;
   } catch (error) {
     console.error("Error creating user:", error);
     return null;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -6,10 +6,10 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-import { Card } from '../ui/card';
+  Legend,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
+import { Card } from "../ui/card";
 
 // Register ChartJS components
 ChartJS.register(
@@ -24,19 +24,25 @@ ChartJS.register(
 const WeeklyProgressBarChart = () => {
   const [chartData, setChartData] = useState<{
     labels: string[];
-    datasets: { label: string; data: number[]; backgroundColor: string; borderColor: string; borderWidth: number }[];
+    datasets: {
+      label: string;
+      data: number[];
+      backgroundColor: string;
+      borderColor: string;
+      borderWidth: number;
+    }[];
   } | null>(null);
 
   useEffect(() => {
     // Sample data - replace with your actual data
     const fakeData = [
-      { day: 'Sun', score: 70, time_spent: 10 },
-      { day: 'Mon', score: 60, time_spent: 15 },
-      { day: 'Tue', score: 80, time_spent: 12 },
-      { day: 'Wed', score: 90, time_spent: 8 },
-      { day: 'Thu', score: 70, time_spent: 14 },
-      { day: 'Fri', score: 85, time_spent: 9 },
-      { day: 'Sat', score: 65, time_spent: 11 }
+      { day: "Sun", score: 70, time_spent: 10 },
+      { day: "Mon", score: 60, time_spent: 15 },
+      { day: "Tue", score: 80, time_spent: 12 },
+      { day: "Wed", score: 90, time_spent: 8 },
+      { day: "Thu", score: 70, time_spent: 14 },
+      { day: "Fri", score: 85, time_spent: 9 },
+      { day: "Sat", score: 65, time_spent: 11 },
     ];
 
     const labels = fakeData.map((item) => item.day);
@@ -70,40 +76,34 @@ const WeeklyProgressBarChart = () => {
     scales: {
       x: {
         grid: {
-          display: false
-        }
+          display: false,
+        },
       },
       y: {
         beginAtZero: true,
         grid: {
-          color: "rgba(0, 0, 0, 0.05)"
-        }
-      }
+          color: "rgba(0, 0, 0, 0.05)",
+        },
+      },
     },
     plugins: {
       legend: {
-        position: 'bottom' as const,
+        position: "bottom" as const,
         labels: {
           usePointStyle: true,
-          padding: 20
-        }
-      }
-    }
+          padding: 20,
+        },
+      },
+    },
   };
 
   return (
-    <Card className="col-span-1 p-4 lg:col-span-2">
+    <Card className="col-span-1 p-4 lg:col-span-2 dark:bg-gray-800/80">
       <h1 className="text-2xl font-bold mb-6">Weekly Test Progress</h1>
       <div className="h-64 md:h-96 w-full">
-        {chartData ? (
-          <Bar data={chartData} options={options} />
-        ) : (
-          <p></p>
-        )}
+        {chartData ? <Bar data={chartData} options={options} /> : <p></p>}
       </div>
-      <div className="mt-4 text-gray-700">
-        Total Time Spent: 79 mins
-      </div>
+      <div className="mt-4 ">Total Time Spent: 79 mins</div>
     </Card>
   );
 };

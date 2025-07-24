@@ -29,9 +29,9 @@ const CourseStatistics = () => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white p-2 shadow-md rounded border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 p-2 shadow-md rounded border border-gray-200 dark:border-gray-700 dark:text-white">
           <p className="font-medium">{data.name}</p>
-          <p className="text-sm">
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             {data.value}% ({Math.round((data.value * totalCourses) / 100)}{" "}
             courses)
           </p>
@@ -43,7 +43,9 @@ const CourseStatistics = () => {
 
   return (
     <div className=" flex flex-col items-center ">
-      <h3 className="text-lg font-semibold  flex justify-center">Course Statistics</h3>
+      <h3 className="text-lg font-semibold  flex justify-center">
+        Course Statistics
+      </h3>
 
       <div className="flex flex-col md:flex-row items-center">
         <div className="w-96 h-64">
@@ -58,8 +60,7 @@ const CourseStatistics = () => {
                 paddingAngle={2}
                 dataKey="value"
                 startAngle={90}
-                endAngle={-270}
-              >
+                endAngle={-270}>
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
@@ -68,41 +69,37 @@ const CourseStatistics = () => {
             </PieChart>
           </ResponsiveContainer>
         </div>
-
-        
       </div>
       <div className="flex flex-col mt-6 md:mt-0  w-full max-w-xs ">
-          <div className="text-center mb-4">
-            <div className="text-3xl font-bold">{totalCourses}</div>
-            <div className="text-sm text-gray-500">Total Courses</div>
-          </div>
-
-          <div className="space-y-3">
-            {data.map(
-              (item, index) =>
-                item.name !== "Unassigned" && (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-2 rounded hover:bg-gray-50"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      ></div>
-                      <span className="text-sm">{item.name}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium">{item.value}%</span>
-                      <span className="text-xs text-gray-500">
-                        ({Math.round((item.value * totalCourses) / 100)})
-                      </span>
-                    </div>
-                  </div>
-                )
-            )}
-          </div>
+        <div className="text-center mb-4">
+          <div className="text-3xl font-bold">{totalCourses}</div>
+          <div className="text-sm text-gray-500">Total Courses</div>
         </div>
+
+        <div className="space-y-3">
+          {data.map(
+            (item, index) =>
+              item.name !== "Unassigned" && (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-2 rounded ">
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: item.color }}></div>
+                    <span className="text-sm">{item.name}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">{item.value}%</span>
+                    <span className="text-xs text-gray-500">
+                      ({Math.round((item.value * totalCourses) / 100)})
+                    </span>
+                  </div>
+                </div>
+              )
+          )}
+        </div>
+      </div>
     </div>
   );
 };

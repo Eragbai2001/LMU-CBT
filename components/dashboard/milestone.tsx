@@ -27,10 +27,10 @@ export default function Milestones() {
   ];
 
   return (
-    <div className="">
+    <div className=" ">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center space-x-2">
-          <h3 className="text-lg font-semibold text-gray-800">Milestones</h3>
+          <h3 className="text-lg font-semibold ">Milestones</h3>
         </div>
 
         <div className="bg-amber-100 rounded-full p-1.5">
@@ -94,7 +94,7 @@ function MilestoneItem({ user, rank }: MilestoneItemProps) {
           </div>
         </div>
 
-        <span className="font-medium text-gray-800">{user.name}</span>
+        <span className="font-medium ">{user.name}</span>
       </div>
 
       <div className="flex items-center space-x-2">

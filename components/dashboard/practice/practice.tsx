@@ -141,17 +141,16 @@ export default function PracticeTests() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-10">
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
-            className="bg-white p-6 rounded-xl shadow-md animate-pulse"
-          >
-            <div className="w-12 h-12 bg-gray-200 rounded-full mb-4"></div>
-            <div className="h-6 bg-gray-200 w-3/4 mb-3 rounded"></div>
-            <div className="h-4 bg-gray-200 w-full mb-2 rounded"></div>
-            <div className="h-4 bg-gray-200 w-5/6 mb-4 rounded"></div>
-            <div className="h-3 bg-gray-200 w-1/2 rounded"></div>
+            className="bg-white dark:bg-gray-800/80 p-6 rounded-xl shadow-md animate-pulse border border-gray-100 dark:border-gray-700">
+            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full mb-4"></div>
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 w-3/4 mb-3 rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 w-full mb-2 rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 w-5/6 mb-4 rounded"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 w-1/2 rounded"></div>
           </div>
         ))}
       </div>
@@ -159,34 +158,30 @@ export default function PracticeTests() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-10">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {displayedTests.map((test) => (
           <div
             key={test.id}
-            className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer group"
-          >
+            className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer group dark:bg-gray-800/80 dark:border-gray-700">
             <div className="flex justify-between items-start mb-4">
-              <div className="w-12 h-12 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full">
+              <div className="w-12 h-12 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full dark:bg-blue-900/30  dark:text-blue-400 ">
                 {iconMap[test.icon] || test.icon}
               </div>
               {isAdmin && (
                 <div className="relative">
                   <div
-                    className={`absolute top-2 right-2 flex space-x-1 transition-opacity duration-200 opacity-0 group-hover:opacity-100`}
-                  >
+                    className={`absolute top-2 right-2 flex space-x-1 transition-opacity duration-200 opacity-0 group-hover:opacity-100`}>
                     <button
                       onClick={() => handleEdit(test.id)}
-                      className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-blue-500 transition-colors cursor-pointer"
-                      aria-label="Edit test"
-                    >
+                      className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer"
+                      aria-label="Edit test">
                       <Edit className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteClick(test.id)}
-                      className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-red-500 transition-colors cursor-pointer"
-                      aria-label="Delete test"
-                    >
+                      className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer"
+                      aria-label="Delete test">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
@@ -195,7 +190,7 @@ export default function PracticeTests() {
             </div>
 
             <div className="flex justify-between items-start">
-              <h3 className="font-bold text-lg mb-2 text-gray-800">
+              <h3 className="font-bold text-lg mb-2 text-gray-800 dark:text-gray-100 ">
                 {test.title}
               </h3>
 
@@ -203,31 +198,29 @@ export default function PracticeTests() {
               <span
                 className={`text-xs px-2 py-1 rounded-full ${
                   test.testType && test.testType === "theory"
-                    ? "bg-purple-100 text-purple-800"
-                    : "bg-blue-100 text-blue-800"
-                }`}
-              >
+                    ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                    : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                }`}>
                 {/* Removed console.log to fix the error */}
                 {test.testType === "theory" ? "Theory" : "MCQ"}
               </span>
             </div>
 
-            <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+            <p className="text-sm text-gray-600 mb-4 line-clamp-2 dark:text-gray-300">
               {test.description}
             </p>
 
-            <div className="flex items-center text-gray-500 text-sm mb-4">
+            <div className="flex items-center text-gray-500  dark:text-gray-400 text-sm mb-4">
               <FileText size={16} className="mr-1" />
               <span className="mr-4">{test.questionCount} Questions</span>
               <Clock size={16} className="mr-1" />
               <span>{test.duration} mins</span>
             </div>
 
-            <div className="mt-2 pt-3 border-t border-gray-100">
+            <div className="mt-2 pt-3 border-t border-gray-100 dark:border-gray-700 ">
               <button
                 onClick={() => setSelectedTest(test)}
-                className="w-full flex items-center justify-center py-2 px-4 bg-blue-50 text-blue-600 font-medium rounded-lg text-sm transition-colors hover:bg-blue-600 hover:text-white cursor-pointer"
-              >
+                className="w-full flex items-center justify-center py-2 px-4 bg-blue-50 text-blue-600 font-medium rounded-lg text-sm transition-colors hover:bg-blue-600 hover:text-white cursor-pointer dark:bg-blue-900/30  dark:text-blue-300 ">
                 Start Practice
                 <ArrowRight size={16} className="ml-2" />
               </button>
@@ -240,8 +233,7 @@ export default function PracticeTests() {
         {hasMoreTests && (
           <button
             onClick={() => setShowAll(!showAll)}
-            className="flex items-center justify-center py-2.5 px-6 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium rounded-lg text-sm transition-all shadow-sm hover:shadow cursor-pointer group"
-          >
+            className="flex items-center justify-center py-2.5 px-6 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium rounded-lg text-sm transition-all shadow-sm hover:shadow cursor-pointer group dark:bg-gray-800 dark:border-gray-700  dark:hover:bg-gray-700/70  ">
             <span>{showAll ? "Show Less" : "Show More"}</span>
             <ChevronRight
               size={16}
@@ -254,8 +246,7 @@ export default function PracticeTests() {
 
         <button
           onClick={() => setIsUploadModalOpen(true)}
-          className="flex items-center justify-center py-2.5 px-6 bg-green-600 text-white font-medium rounded-lg text-sm shadow-sm hover:bg-green-700 transition-all hover:shadow cursor-pointer group"
-        >
+          className="flex items-center justify-center py-2.5 px-6 bg-green-600 text-white font-medium rounded-lg text-sm shadow-sm hover:bg-green-700 transition-all hover:shadow cursor-pointer group">
           <span>Generate Test from Notes</span>
           <FileUp
             size={16}
@@ -266,8 +257,7 @@ export default function PracticeTests() {
         {isAdmin && (
           <button
             onClick={() => router.push("/create-test")}
-            className="flex items-center justify-center py-2.5 px-6 bg-blue-600 text-white font-medium rounded-lg text-sm shadow-sm hover:bg-blue-700 transition-all hover:shadow cursor-pointer group"
-          >
+            className="flex items-center justify-center py-2.5 px-6 bg-blue-600 text-white font-medium rounded-lg text-sm shadow-sm hover:bg-blue-700 transition-all hover:shadow cursor-pointer group">
             <span>Create Test</span>
             <Plus
               size={16}

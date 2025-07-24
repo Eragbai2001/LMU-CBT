@@ -17,12 +17,14 @@ import {
   Shield,
   User,
   Moon,
+  Sun,
   Menu,
-  
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { SidebarLogo } from "@/components/dashboard/sidebar/sidebar-logo";
 import CustomSignOut from "@/components/dashboard/sidebar/custom-signout";
 import LoaderAnimation from "@/components/Loader/loader-animation";
+import NextTopLoader from 'nextjs-toploader';
 
 // Create a client component that uses useSession
 function DashboardLayoutContent({
@@ -36,12 +38,16 @@ function DashboardLayoutContent({
   const { status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const { theme, setTheme, resolvedTheme } = useTheme(); // Add resolvedTheme
+  const [mounted, setMounted] = useState(false);
 
   // Define constants before any hooks are called
   const showSidebar = pathname.startsWith("/dashboard");
   const showHeader =
     !pathname.includes("/dashboard/practice/test") &&
-    !pathname.includes("/dashboard/practice/theory");
+    !pathname.includes("/dashboard/practice/theory") &&
+    !pathname.includes("/dashboard/profile") &&
+    !pathname.includes("/dashboard/practice");
 
   // Group all useEffect hooks together to maintain consistent order
   useEffect(() => {
@@ -84,6 +90,11 @@ function DashboardLayoutContent({
     console.log("Header visible:", showHeader);
   }, [pathname, showHeader]);
 
+  // Add this effect to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (status === "unauthenticated") return null;
   if (status === "loading")
     return (
@@ -104,24 +115,31 @@ function DashboardLayoutContent({
       icon: <Timer size={20} className="text-indigo-600" />,
     },
     {
-      label: "Analytics",
-      href: "/analytics",
-      icon: <TrendingUp size={20} className="text-indigo-600" />,
-    },
-    {
-      label: "Rank",
-      href: "/rank",
-      icon: <Shield size={20} className="text-amber-500" />,
-    },
-    {
       label: "Profile",
       href: "/dashboard/profile",
       icon: <User size={20} className="text-indigo-600" />,
     },
   ];
 
+  // Check if we should display dark or light mode icon
+  // This needs to consider both the theme setting and what's actually applied
+  const isDarkMode = mounted && resolvedTheme === "dark";
+
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0a0a0a]">
+      {/* NextTopLoader - This automatically detects all navigation */}
+      <NextTopLoader
+        color="#3b82f6"
+        initialPosition={0.08}
+        crawlSpeed={200}
+        height={3}
+        crawl={true}
+        showSpinner={false}
+        easing="ease"
+        speed={200}
+        shadow="0 0 10px #3b82f6,0 0 5px #3b82f6"
+      />
+
       {/* Overlay when sidebar is open on mobile */}
       {showSidebar && open && (
         <div
@@ -136,15 +154,18 @@ function DashboardLayoutContent({
           id="mobile-sidebar"
           className={`fixed top-0 left-0 h-full z-50 ${
             open ? "block" : "hidden"
-          } lg:relative lg:flex lg:w-10`}
-        >
+          } lg:relative lg:flex lg:w-10`}>
           <Sidebar open={open} setOpen={setOpen}>
             <SidebarBody className="justify-between">
-              <div className={`flex items-center px-5 mb-10 ${open ? "w-full" : ""}`}>
+              <div
+                className={`flex items-center px-5 mb-10 ${
+                  open ? "w-full" : ""
+                }`}>
                 <SidebarLogo />
               </div>
 
-              <div className={`flex flex-1 px-5 flex-col ${open ? "w-full" : ""}`}>
+              <div
+                className={`flex flex-1 px-5 flex-col ${open ? "w-full" : ""}`}>
                 <div className="flex flex-col gap-2">
                   {menuLinks.map((link, idx) => (
                     <SidebarLink
@@ -155,15 +176,11 @@ function DashboardLayoutContent({
                   ))}
                 </div>
               </div>
-              <div className={`flex flex-col gap-4 px-5 mt-auto ${open ? "w-full" : ""}`}>
+              <div
+                className={`flex flex-col gap-4 px-5 mt-auto ${
+                  open ? "w-full" : ""
+                }`}>
                 <CustomSignOut />
-                <SidebarLink
-                  link={{
-                    label: "Night Mode",
-                    href: "#",
-                    icon: <Moon size={20} className="text-indigo-600" />,
-                  }}
-                />
               </div>
             </SidebarBody>
           </Sidebar>
@@ -172,17 +189,15 @@ function DashboardLayoutContent({
 
       <div
         className={`flex-1 flex flex-col lg:flex-col h-full overflow-hidden transition-all duration-300 ${
-          showSidebar && open ? "lg:ml-[240px]" : "lg:ml-[60px]"
-        }`}
-      >
+          showSidebar && open ? "lg:ml-[202px]" : "lg:ml-[25px]"
+        }`}>
         {/* Header for smaller screens */}
         {showHeader && (
           <div className="w-full sticky top-0 z-30 flex justify-between items-center p-4 bg-white lg:hidden">
             <button
               onClick={() => setOpen(!open)}
               className="p-2 focus:outline-none"
-              aria-label="Toggle menu"
-            >
+              aria-label="Toggle menu">
               <Menu size={24} />
             </button>
             <DashboardHeader />
@@ -193,15 +208,13 @@ function DashboardLayoutContent({
         <div className="flex flex-col flex-1 overflow-auto">
           {/* Header for larger screens */}
           {showHeader && (
-            <div className="hidden lg:block w-full px-7">
+            <div className="hidden lg:block w-full px-10 ">
               <DashboardHeader />
-              {/* Main content */}
             </div>
           )}
           <main className={`${showHeader ? "px-10" : "p-0"}`}>{children}</main>
         </div>
       </div>
-      {/* Profile card */}
     </div>
   );
 }

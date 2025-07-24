@@ -1,7 +1,19 @@
 "use client";
+
+import * as React from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import type { ThemeProviderProps } from "next-themes";
+
+type ThemeProviderProps = React.ComponentProps<typeof NextThemesProvider>;
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+  return (
+    <NextThemesProvider
+      attribute="class" // Ensure this matches your Tailwind darkMode setting
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+      {...props}>
+      {children}
+    </NextThemesProvider>
+  );
 }
