@@ -17,29 +17,46 @@ export default async function ProfilePage() {
   const avatarData = {
     avatarSeed: (session.user.name || "user").toLowerCase().replace(/\s+/g, ""),
   };
-
-  try {
-    const userProfile = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        avatarSeed: true,
-      },
-    });
-
-    if (userProfile?.avatarSeed) {
-      avatarData.avatarSeed = userProfile.avatarSeed;
-    }
-  } catch (error) {
-    console.error("Error fetching avatar data:", error);
-    // Continue with default avatar data
-  }
-
-  // Create a profile object from the user data
-  const profile = {
+    let userProfile = {
     name: session.user.name || "",
     email: session.user.email || "",
-    ...avatarData,
+    avatarSeed: (session.user.name || "user").toLowerCase().replace(/\s+/g, ""),
   };
+
+ try {
+    // Get complete profile from database
+    const dbProfile = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        name: true,
+        email: true,
+        avatarSeed: true,
+        departmentId: true,
+        levelId: true,
+        department: {
+          select: { id: true, name: true, code: true }
+        },
+        level: {
+          select: { id: true, name: true, value: true }
+        }
+      }
+    });
+
+    // Merge database data with default data
+    if (dbProfile) {
+      userProfile = {
+        ...userProfile,  // Keep defaults
+        ...dbProfile,    // Override with database values
+        avatarSeed: dbProfile.avatarSeed || userProfile.avatarSeed, // Ensure avatarSeed is never null
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching profile data:", error);
+  }
+
+
+  // Create a profile object from the user data
+
 
   return (
     <div className="min-h-screen py-8 bg-white dark:bg-[#0a0a0a]">
@@ -53,8 +70,8 @@ export default async function ProfilePage() {
             <Sparkles className="w-4 h-4 text-yellow-400" />
           </p>
         </div>
-
-        <ProfileForm user={profile} />
+        <ProfileForm user={userProfile} />
+       
 
         <div className="mt-8">
           <div className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-0 dark:border-[#333333] shadow-lg p-6 rounded-lg">

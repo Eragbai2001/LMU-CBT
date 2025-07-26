@@ -24,18 +24,28 @@ enum Role {
 }
 
 model User {
-  id               String    @id @default(uuid())
+  id               String      @id @default(uuid())
   name             String
-  email            String    @unique
+  email            String      @unique
   password         String?
-  resetToken       String?   @unique
+  resetToken       String?     @unique
   resetTokenExpiry DateTime?
-  createdAt        DateTime  @default(now())
-  role             Role      @default(USER)
+  createdAt        DateTime    @default(now())
+  role             Role        @default(USER)
   avatarStyle      String?
   avatarSeed       String?
-  avatar           Avatar?   @relation("UserAvatar") // Add this line to fix the error
+  departmentId     String?     // Add this field
+  levelId          String?     // Add this field
+  
+  // Add these relations
+  department       Department? @relation(fields: [departmentId], references: [id])
+  level            Level?      @relation(fields: [levelId], references: [id])
+  avatar           Avatar?     @relation("UserAvatar")
+  
+  @@index([departmentId])
+  @@index([levelId])
 }
+
 
 model PracticeTest {
   id              String            @id @default(cuid())
@@ -55,6 +65,15 @@ model PracticeTest {
   // sessions        PracticeSession[]  <- Remove this duplicate
   // questions       Question[]         <- Remove this duplicate
   // results         TestResult[]       <- Remove this duplicate
+
+  departmentId    String?
+  levelId         String?
+
+  department      Department?  @relation(fields: [departmentId], references: [id])
+  level           Level?       @relation(fields: [levelId], references: [id])
+
+  @@index([departmentId])
+  @@index([levelId])
 }
 
 model Duration {
@@ -130,3 +149,23 @@ model MaintenanceSettings {
 
   @@map("maintenance_settings")
 }
+
+
+
+model Department {
+  id    String        @id @default(cuid())
+  name  String        @unique
+  code  String?       @unique
+  users User[]
+  tests PracticeTest[] // Tests for this department
+}
+
+
+model Level {
+  id    String        @id @default(cuid())
+  name  String        @unique // "100 Level", "200 Level", etc.
+  value Int           @unique // 100, 200, etc.
+  users User[]
+  tests PracticeTest[] // Tests for this level
+}
+

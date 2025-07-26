@@ -8,6 +8,8 @@ export async function updateProfile(data: {
   name: string;
   email: string;
   avatarSeed: string;
+  departmentId?: string | null; // Add these fields
+  levelId?: string | null;
   // Removed enableAiAssistant as it's now handled by local storage
 }) {
   try {
@@ -23,6 +25,9 @@ export async function updateProfile(data: {
       data: {
         name: data.name,
         avatarSeed: data.avatarSeed,
+        departmentId: data.departmentId, // Add these fields here too
+        levelId: data.levelId,
+
         // Removed enableAiAssistant as it's now handled by local storage
         // Don't update email as it's the primary identifier
       },
