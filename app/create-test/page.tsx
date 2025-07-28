@@ -45,7 +45,9 @@ export interface TestData {
   isPopular: boolean;
   questionCount: number;
   points: number;
-  testType: "objective" | "theory"; // Added field for test type
+  testType: "objective" | "theory";
+  departmentId?: string;
+  levelId?: string;
 }
 
 const availableIcons = [
@@ -71,6 +73,12 @@ export default function CreateTestPage({
   const [loading, setLoading] = useState(true);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [departments, setDepartments] = useState<
+    { id: string; name: string; code?: string }[]
+  >([]);
+  const [levels, setLevels] = useState<
+    { id: string; name: string; value: number }[]
+  >([]);
 
   const [testData, setTestData] = useState<TestData>(
     initialData || {
@@ -200,6 +208,23 @@ export default function CreateTestPage({
     }));
   }, [testData.year]);
 
+  useEffect(() => {
+    // Fetch departments and levels data
+    const fetchAcademicData = async () => {
+      try {
+        const response = await fetch("/api/academic-data");
+        if (!response.ok) throw new Error("Failed to fetch academic data");
+
+        const data = await response.json();
+        setDepartments(data.departments || []);
+        setLevels(data.levels || []);
+      } catch (error) {
+        console.error("Error fetching academic data:", error);
+      }
+    };
+
+    fetchAcademicData();
+  }, []);
   if (loading) {
     return (
       <div>
@@ -342,12 +367,10 @@ export default function CreateTestPage({
     let newId = 1; // Default to 1 if no questions exist
     if (testData.questions.length > 0) {
       const existingIds = testData.questions
-        .map(q => Number(q.id))
-        .filter(id => !Number.isNaN(id)); // Filter out NaN values
-        
-      newId = existingIds.length > 0 
-        ? Math.max(...existingIds) + 1
-        : 1;
+        .map((q) => Number(q.id))
+        .filter((id) => !Number.isNaN(id)); // Filter out NaN values
+
+      newId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
     }
 
     // Ensure the question has the yearValue from the test
@@ -513,9 +536,9 @@ export default function CreateTestPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 dark:bg-[#0a0a0a]">
       {globalError && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded dark:bg-red-900/30 dark:text-red-300 ">
           {globalError}
         </div>
       )}
@@ -523,11 +546,10 @@ export default function CreateTestPage({
         <div className="flex items-center mb-8">
           <button
             onClick={goBack}
-            className="p-2 mr-4 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-600" />
+            className="p-2 mr-4 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+            <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <h1 className="text-2xl font-bold text-gray-800">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
             {editId ? "Edit Practice Test" : "Create New Practice Test"}
           </h1>
         </div>
@@ -543,6 +565,8 @@ export default function CreateTestPage({
             onTestTypeChange={handleTestTypeChange}
             onTogglePopular={togglePopular}
             onNext={goToNextStep}
+            departments={departments} // Add these props
+            levels={levels}
           />
         )}
 

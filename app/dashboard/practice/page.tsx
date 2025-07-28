@@ -56,9 +56,7 @@ const Page = () => {
             </div>
           </div>
         )}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 mt-6 px-10">
-          <h1 className="text-2xl font-bold ">Available Practice Tests</h1>
-        </div>
+     
 
         <PracticeTests />
       </div>

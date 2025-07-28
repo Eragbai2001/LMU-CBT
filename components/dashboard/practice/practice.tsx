@@ -51,6 +51,8 @@ export default function PracticeTests() {
   const router = useRouter();
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN";
+  const [needsProfileUpdate, setNeedsProfileUpdate] = useState(false);
+  const [checkingUserProfile, setCheckingUserProfile] = useState(true);
 
   const handleEdit = useCallback(
     (testId: string | number) => {
@@ -114,6 +116,26 @@ export default function PracticeTests() {
       });
   }, []);
 
+  useEffect(() => {
+    const checkUserAcademicInfo = async () => {
+      try {
+        const res = await fetch("/api/user");
+        const user = await res.json();
+
+        // Check if department and level are set
+        if (!user.departmentId || !user.levelId) {
+          setNeedsProfileUpdate(true);
+        }
+      } catch (error) {
+        console.error("Error checking profile:", error);
+      } finally {
+        setCheckingUserProfile(false);
+      }
+    };
+
+    checkUserAcademicInfo();
+  }, []);
+
   // Safe array operations
   const displayedTests = showAll
     ? tests
@@ -139,6 +161,45 @@ export default function PracticeTests() {
     );
   }
 
+  // Add this condition after your loading check but before your return statement
+  if (tests.length === 0 && !loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6 dark:bg-gray-800">
+          <FileText size={32} className="text-gray-400 dark:text-gray-500" />
+        </div>
+
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">
+          No Tests Available
+        </h2>
+
+        {checkingUserProfile ? (
+          <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
+            Checking your profile information...
+          </p>
+        ) : (
+          <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
+            {needsProfileUpdate
+              ? "Please select your department and level in your profile to see relevant tests."
+              : "There are no tests available for your department and level yet."}
+          </p>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Button
+            onClick={() => router.push("/create-test")}
+            variant="outline"
+            className="flex items-center gap-2">
+            <Plus size={16} />
+            Create Test
+          </Button>
+
+          {/* Rest of your buttons */}
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-10">
@@ -156,9 +217,11 @@ export default function PracticeTests() {
       </div>
     );
   }
-
   return (
     <div className="space-y-6 px-10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 mt-6 px-10">
+        <h1 className="text-2xl font-bold ">Available Practice Tests</h1>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {displayedTests.map((test) => (
           <div
